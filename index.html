@@ -118,7 +118,7 @@ form.reg .full { grid-column: 1 / -1 }
 @media (max-width: 520px) { form.reg { grid-template-columns: 1fr } }
 .fld { display: grid; gap: 4px; min-width: 0 }
 label { font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--gold-soft) }
-input[type=text], input[type=number], select, textarea { width: 100%; font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 4px; border: 1px solid var(--line); background: #1a100c; color: var(--ink) }
+input[type=text], input[type=password], input[type=number], select, textarea { width: 100%; font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 4px; border: 1px solid var(--line); background: #1a100c; color: var(--ink) }
 textarea { min-height: 64px; resize: vertical }
 .formrow { display: flex; flex-wrap: wrap; gap: 10px; align-items: center }
 .status { font-size: 13px; color: var(--muted) }
@@ -157,10 +157,12 @@ footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--lin
     <p>Chỉ cần nhập một tên và chọn giới tính, không cần mật khẩu. Tên này là tên đại diện của bạn và hiện công khai với mọi người trong chùa.</p>
     <label for="gateName">Tên đại diện</label>
     <input type="text" id="gateName" maxlength="40" placeholder="Nhập tên của bạn">
+    <label for="gatePw" class="gatePw" hidden>Mật khẩu admin</label>
+    <input type="password" id="gatePw" class="gatePw" autocomplete="current-password" hidden>
     <label id="gateGenderLabel">Giới tính</label>
     <div class="seg" role="group" aria-labelledby="gateGenderLabel"><button type="button" data-gate-gender="m" aria-pressed="false">Nam</button><button type="button" data-gate-gender="f" aria-pressed="false">Nữ</button></div>
     <span class="status err gerr" id="gateErr" role="alert"></span>
-    <button class="primary" type="submit">Vào chùa</button>
+    <button class="primary" type="submit" id="gateBtn">Vào chùa</button>
   </form>
 </div>
 <div class="wrap">
@@ -204,7 +206,7 @@ footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--lin
     <div class="hint">Bấm vào khung cảnh rồi đi bằng <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> hoặc phím mũi tên, kéo chuột để xoay góc nhìn, bấm xuống đất để đi tới đó, <kbd>E</kbd> để làm lễ, <kbd>Enter</kbd> để trò chuyện. Trên điện thoại dùng cần điều khiển ở góc phải.</div>
     <div class="chat" id="chat">
       <div class="chathead"><b>Hội thoại trên đỉnh Yên Tử</b><span><span id="chatState">Đang kết nối…</span> <button type="button" class="link" id="chatClear" hidden>Xóa hội thoại</button></span></div>
-      <div class="namerow"><label for="myName">Tên đại diện của bạn</label><input type="text" id="myName" maxlength="40" placeholder="Nhập tên hiển thị" list="myNames"><datalist id="myNames"></datalist><button type="button" id="myNameBtn">Đổi tên</button>
+      <div class="namerow"><label for="myName">Tên đại diện của bạn</label><input type="text" id="myName" maxlength="40" placeholder="Nhập tên hiển thị" list="myNames"><datalist id="myNames"></datalist><button type="button" id="myNameBtn">Đổi tên</button><button type="button" id="logoutBtn" hidden>Đăng xuất admin</button>
         <div class="seg" role="group" aria-label="Nhân vật"><button type="button" data-gender="m" aria-pressed="true">Nam</button><button type="button" data-gender="f" aria-pressed="false">Nữ</button></div></div>
       <div class="chatlog" id="chatLog" aria-live="polite"><div class="sys">Đang tải hội thoại…</div></div>
       <div class="quick" id="quick">
@@ -269,15 +271,23 @@ const FIREBASE_CONFIG = {
 };
 if(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL && !(window.claude && window.claude.use)){
   const PRESENCE_MS=500;
-  let services=null;
+  /* Tài khoản admin là địa chỉ nội bộ, không nhận thư; mật khẩu đặt trong Firebase Console */
+  const ADMIN_EMAIL="admin@chua-dong-yen-tu.invalid";
+  let services=null, appReady=false;
+  const ensureApp=()=>{ if(!window.firebase) throw new Error("firebase_not_loaded"); if(!appReady){ firebase.initializeApp(FIREBASE_CONFIG); appReady=true; } };
+  window.cdytAuth={
+    signIn:async pw=>{ ensureApp(); await firebase.auth().signInWithEmailAndPassword(ADMIN_EMAIL,pw); },
+    signOut:async()=>{ ensureApp(); await firebase.auth().signOut(); }
+  };
   const connect=()=>services||(services=(async()=>{
-    if(!window.firebase) throw new Error("firebase_not_loaded");
-    firebase.initializeApp(FIREBASE_CONFIG);
+    ensureApp();
+    const auth=firebase.auth();
+    await new Promise(ok=>{ const off=auth.onAuthStateChanged(()=>{ off(); ok(); }); });
     const timeout=new Promise((_,no)=>setTimeout(()=>no(new Error("auth_timeout")),15000));
-    const cred=await Promise.race([firebase.auth().signInAnonymously(),timeout]);
+    const account=auth.currentUser||(await Promise.race([auth.signInAnonymously(),timeout])).user;
     const root=firebase.database().ref();
     const owner=await root.child("config/owner").once("value").then(s=>s.val()).catch(()=>null);
-    return {uid:cred.user.uid,root,owner:owner||null,isOwner:!!owner&&owner===cred.user.uid};
+    return {uid:account.uid,root,owner:owner||null,isOwner:!!owner&&owner===account.uid};
   })());
   const fail=e=>{ throw e&&e.code==="PERMISSION_DENIED" ? {code:"quota_exceeded",message:"Rejected by database rules"} : e; };
   const meta={fromCache:false,hasPendingWrites:false};
@@ -1247,6 +1257,9 @@ function regNameOf(id){
   return it && typeof it.ten==="string" ? it.ten.replace(/\s+/g," ").trim().slice(0,40) : "";
 }
 const cleanName = s => typeof s==="string" ? s.replace(/\s+/g," ").trim().slice(0,40) : "";
+/* Tên dành riêng cho admin: bỏ dấu, hoa thường, khoảng trắng và ký tự lạ để không mạo danh bằng cách viết khác đi */
+const isAdminName = s => String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[đĐ]/g,"d").toLowerCase().replace(/[^a-z0-9]/g,"")==="nguyenhaihiep";
+const needsAdminLogin = s => !!window.cdytAuth && isAdminName(s);
 /* Tên đại diện nhập khi vào chùa, nhớ trên trình duyệt này để lần sau không phải nhập lại */
 const TAB_KEY="an-nhien-ten-dai-dien";
 let tabName=""; try{ tabName=cleanName(localStorage.getItem(TAB_KEY)||""); }catch(e){}
@@ -1392,6 +1405,7 @@ document.querySelectorAll("[data-gender]").forEach(b=>{
 });
 $("myNameBtn").addEventListener("click",()=>{
   if(!cleanName($("myName").value)){ $("myName").value=tabName; toast("Tên đại diện không được để trống."); return; }
+  if(needsAdminLogin($("myName").value) && !isOwner){ $("myName").value=tabName; toast("Tên này dành riêng cho admin, hãy chọn tên khác."); return; }
   setTabName($("myName").value); toast(`Bạn đang đi lễ với tên ${myName()}`);
 });
 $("myName").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); $("myNameBtn").click(); } });
@@ -1436,7 +1450,11 @@ function setNote(t){ $("dataNote").textContent=t; }
 async function initData(){
   if(C && C.use){
     try{ user=await C.use("user"); }catch(e){ user=null; }
-    if(user){ uid=await user.id(); isOwner=await user.isOwner(); ownerUid=user.ownerId?await user.ownerId():null; canWrite=await user.can("data.write"); try{ myProfileName=cleanName((await user.me()).name); }catch(e){} setRegRole(); refreshNames(); }
+    if(user){ uid=await user.id(); isOwner=await user.isOwner(); ownerUid=user.ownerId?await user.ownerId():null; canWrite=await user.can("data.write"); try{ myProfileName=cleanName((await user.me()).name); }catch(e){} setRegRole(); refreshNames();
+      // Phiên admin đã hết nhưng còn lưu tên admin: quay lại màn hình vào chùa để nhập mật khẩu
+      if(needsAdminLogin(tabName) && !isOwner){ try{ localStorage.removeItem(TAB_KEY); }catch(e){} location.reload(); return; }
+      $("logoutBtn").hidden=!(isOwner && window.cdytAuth);
+    }
     try{ db=await C.use("db"); }catch(e){ db=null; }
   }
   if(!db){
@@ -1612,19 +1630,39 @@ let hasProfile=false; try{ hasProfile=!!tabName && !!localStorage.getItem(GKEY);
 if(hasProfile) enterTemple();
 else{
   let gateGender="";
-  $("gate").hidden=false; $("gateName").value=tabName; $("gateName").focus();
+  const togglePw=()=>{ const on=needsAdminLogin($("gateName").value); document.querySelectorAll(".gatePw").forEach(el=>{ el.hidden=!on; }); if(!on) $("gatePw").value=""; };
+  $("gate").hidden=false; $("gateName").value=tabName; $("gateName").focus(); togglePw();
+  $("gateName").addEventListener("input",togglePw);
   document.querySelectorAll("[data-gate-gender]").forEach(b=>b.addEventListener("click",()=>{
     gateGender=b.dataset.gateGender;
     document.querySelectorAll("[data-gate-gender]").forEach(o=>o.setAttribute("aria-pressed",String(o===b)));
   }));
-  $("gateForm").addEventListener("submit",e=>{
+  $("gateForm").addEventListener("submit",async e=>{
     e.preventDefault();
-    const name=cleanName($("gateName").value);
-    if(!name){ $("gateErr").textContent="Hãy nhập tên đại diện."; $("gateName").focus(); return; }
-    if(!gateGender){ $("gateErr").textContent="Hãy chọn giới tính."; return; }
+    const name=cleanName($("gateName").value), err=$("gateErr");
+    if(!name){ err.textContent="Hãy nhập tên đại diện."; $("gateName").focus(); return; }
+    if(!gateGender){ err.textContent="Hãy chọn giới tính."; return; }
+    if(needsAdminLogin(name)){
+      const pw=$("gatePw").value;
+      if(!pw){ err.textContent="Tên này dành cho admin, hãy nhập mật khẩu."; $("gatePw").focus(); return; }
+      err.textContent=""; $("gateBtn").disabled=true;
+      try{ await window.cdytAuth.signIn(pw); }
+      catch(ex){
+        const code=ex&&ex.code||"";
+        err.textContent = code==="auth/too-many-requests" ? "Thử sai quá nhiều lần, hãy đợi một lúc rồi thử lại."
+          : /wrong-password|invalid-credential|invalid-login|user-not-found/.test(code) ? "Sai mật khẩu."
+          : "Chưa đăng nhập được, hãy thử lại.";
+        $("gateBtn").disabled=false; $("gatePw").value=""; $("gatePw").focus(); return;
+      }
+      $("gateBtn").disabled=false; $("gatePw").value="";
+    }
     setTabName(name); setGender(gateGender); enterTemple();
   });
 }
+$("logoutBtn").addEventListener("click",async()=>{
+  try{ await window.cdytAuth.signOut(); localStorage.removeItem(TAB_KEY); localStorage.removeItem(GKEY); }catch(e){}
+  location.reload();
+});
 </script>
 </body>
 </html>

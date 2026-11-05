@@ -24,9 +24,13 @@ Khi đăng ký đi lễ, chỉ chủ trang được thêm nhiều người. Ngư
 
 ### Quyền chủ trang
 
-1. Mở trang với đuôi `#ma-cua-toi` rồi tải lại, sao chép mã hiện ở phần ghi chú cuối trang.
-2. Trong tab **Data** của Realtime Database, tạo mục `config` → `owner` với giá trị là mã đó.
-3. Tải lại trang. Chủ trang có thể gỡ đăng ký và xóa hội thoại. Nếu xóa dữ liệu trình duyệt, mã sẽ đổi và cần làm lại các bước này.
+Admin vào trang bằng tên **Nguyen Hai Hiep** (viết có dấu hay không đều được) và mật khẩu riêng. Người khác không chọn được tên này nếu không có mật khẩu. Admin được thêm nhiều người khi đăng ký, gỡ đăng ký và xóa hội thoại, trên bất kỳ máy nào.
+
+1. Trong **Authentication → Sign-in method**, bật **Email/Password**.
+2. Trong **Authentication → Users**, thêm người dùng có email `admin@chua-dong-yen-tu.invalid` và một mật khẩu mạnh.
+3. Sao chép **User UID** của người dùng đó vào `config` → `owner` trong tab **Data** của Realtime Database.
+
+Để đổi mật khẩu, dùng menu của người dùng đó trong **Authentication → Users**. Khi dùng máy chung, bấm **Đăng xuất admin** ở khung trò chuyện trước khi rời đi.
 
 Trang chưa có kiểm duyệt tự động. Nội dung xấu cần được xóa thủ công trên trang hoặc trong Firebase Console.
 
