@@ -144,10 +144,25 @@ textarea { min-height: 64px; resize: vertical }
 .lan .txt { margin: 0 0 4px; font-family: var(--display); font-size: 18px; line-height: 1.35; overflow-wrap: anywhere }
 .lan .meta { font-size: 12px; color: #7a5b45 }
 .note { font-size: 12.5px; color: var(--muted); margin-top: 10px }
+.dlg.gate { position: fixed; z-index: 50; background: rgba(10,7,5,.92) }
+.gate input { font-size: 16px }
+.gate .gerr { min-height: 18px }
 footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--line); padding-top: 14px }
 </style>
 </head>
 <body>
+<div class="dlg gate" id="gate" hidden>
+  <form class="card" id="gateForm" autocomplete="off" novalidate>
+    <h3>Vào chùa Đồng</h3>
+    <p>Chỉ cần nhập một tên và chọn giới tính, không cần mật khẩu. Tên này là tên đại diện của bạn và hiện công khai với mọi người trong chùa.</p>
+    <label for="gateName">Tên đại diện</label>
+    <input type="text" id="gateName" maxlength="40" placeholder="Nhập tên của bạn">
+    <label id="gateGenderLabel">Giới tính</label>
+    <div class="seg" role="group" aria-labelledby="gateGenderLabel"><button type="button" data-gate-gender="m" aria-pressed="false">Nam</button><button type="button" data-gate-gender="f" aria-pressed="false">Nữ</button></div>
+    <span class="status err gerr" id="gateErr" role="alert"></span>
+    <button class="primary" type="submit">Vào chùa</button>
+  </form>
+</div>
 <div class="wrap">
   <header>
     <div class="brand">
@@ -189,7 +204,7 @@ footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--lin
     <div class="hint">Bấm vào khung cảnh rồi đi bằng <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> hoặc phím mũi tên, kéo chuột để xoay góc nhìn, bấm xuống đất để đi tới đó, <kbd>E</kbd> để làm lễ, <kbd>Enter</kbd> để trò chuyện. Trên điện thoại dùng cần điều khiển ở góc phải.</div>
     <div class="chat" id="chat">
       <div class="chathead"><b>Hội thoại trên đỉnh Yên Tử</b><span><span id="chatState">Đang kết nối…</span> <button type="button" class="link" id="chatClear" hidden>Xóa hội thoại</button></span></div>
-      <div class="namerow"><label for="myName">Tên của bạn ở tab này</label><input type="text" id="myName" maxlength="40" placeholder="Nhập tên hiển thị" list="myNames"><datalist id="myNames"></datalist><button type="button" id="myNameBtn">Đổi tên</button>
+      <div class="namerow"><label for="myName">Tên đại diện của bạn</label><input type="text" id="myName" maxlength="40" placeholder="Nhập tên hiển thị" list="myNames"><datalist id="myNames"></datalist><button type="button" id="myNameBtn">Đổi tên</button>
         <div class="seg" role="group" aria-label="Nhân vật"><button type="button" data-gender="m" aria-pressed="true">Nam</button><button type="button" data-gender="f" aria-pressed="false">Nữ</button></div></div>
       <div class="chatlog" id="chatLog" aria-live="polite"><div class="sys">Đang tải hội thoại…</div></div>
       <div class="quick" id="quick">
@@ -214,7 +229,7 @@ footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--lin
       <form class="reg" id="regForm" autocomplete="off">
         <div class="fld full"><label id="pplLabel">Người đi lễ</label>
           <div class="people" id="people" role="group" aria-labelledby="pplLabel"></div>
-          <div class="formrow"><button type="button" id="addPerson">+ Thêm người</button><span class="status">Người đầu tiên là người đại diện đăng ký.</span></div>
+          <div class="formrow"><button type="button" id="addPerson" hidden>+ Thêm người</button><span class="status" id="pplHint"></span></div>
         </div>
         <div class="fld"><label for="rDay">Ngày đi lễ</label><select id="rDay"></select></div>
         <div class="fld"><label for="rTime">Buổi</label><select id="rTime"><option>Sáng</option><option>Chiều</option><option>Tối</option></select></div>
@@ -262,7 +277,7 @@ if(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL && !(window.claude && w
     const cred=await Promise.race([firebase.auth().signInAnonymously(),timeout]);
     const root=firebase.database().ref();
     const owner=await root.child("config/owner").once("value").then(s=>s.val()).catch(()=>null);
-    return {uid:cred.user.uid,root,isOwner:!!owner&&owner===cred.user.uid};
+    return {uid:cred.user.uid,root,owner:owner||null,isOwner:!!owner&&owner===cred.user.uid};
   })());
   const fail=e=>{ throw e&&e.code==="PERMISSION_DENIED" ? {code:"quota_exceeded",message:"Rejected by database rules"} : e; };
   const meta={fromCache:false,hasPendingWrites:false};
@@ -321,7 +336,7 @@ if(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL && !(window.claude && w
       connected:()=>online };
   };
 
-  const makeUser=s=>({ id:async()=>s.uid, isOwner:async()=>s.isOwner, canEdit:async()=>true, can:async()=>true,
+  const makeUser=s=>({ id:async()=>s.uid, ownerId:async()=>s.owner, isOwner:async()=>s.isOwner, canEdit:async()=>true, can:async()=>true,
     me:async()=>({id:s.uid,name:"",avatarUrl:"",color:"#b8914a",email:null,isOwner:s.isOwner,canEdit:true}),
     profiles:async ids=>{ const r={}; [].concat(ids).forEach(i=>{ r[i]={id:i,name:"",avatarUrl:"",color:"#b8914a",email:null,isMe:i===s.uid,guest:false}; }); return r; } });
 
@@ -366,7 +381,7 @@ if(STANDALONE){
       delete: async()=>write(o=>{ delete o[id]; }) }; };
   const db={ doc:docRef, collection:col=>({ path:col, doc:id=>docRef(col+"/"+(id||Math.random().toString(36).slice(2))),
     onSnapshot:next=>{ (listeners[col]=listeners[col]||new Set()).add(next); setTimeout(()=>next(snap(col)),0); return ()=>listeners[col].delete(next); } }) };
-  const user={ id:async()=>localId, isOwner:async()=>true, canEdit:async()=>true, can:async()=>true,
+  const user={ id:async()=>localId, ownerId:async()=>localId, isOwner:async()=>true, canEdit:async()=>true, can:async()=>true,
     me:async()=>({id:localId,name:"",avatarUrl:"",color:"#b8914a",email:null,isOwner:true,canEdit:true}),
     profiles:async ids=>{ const r={}; [].concat(ids).forEach(i=>{ r[i]={id:i,name:"",avatarUrl:"",color:"#b8914a",email:null,isMe:i===localId,guest:false}; }); return r; } };
   let room=null;
@@ -956,14 +971,14 @@ function poseAvatar(av,bowAmt,walking,t){
   }
 }
 const GKEY="an-nhien-gioi-tinh";
-let myGender="m"; try{ const s=sessionStorage.getItem(GKEY); if(s==="f"||s==="m") myGender=s; }catch(e){}
+let myGender="m"; try{ const s=localStorage.getItem(GKEY); if(s==="f"||s==="m") myGender=s; }catch(e){}
 const me={ x:0, z:37, ry:Math.PI, bow:0, moving:false, ci:Math.floor(Math.random()*4), y:0 };
 let meAvatar=null, camYaw=0, camPitch=0.42, target=null;
 const keys=new Set(), joyVec={x:0,y:0};
 if(ready3d){ meAvatar=makeAvatar(me.ci,myGender); }
 function setGender(gd){
   myGender = gd==="f" ? "f" : "m";
-  try{ sessionStorage.setItem(GKEY,myGender); }catch(e){}
+  try{ localStorage.setItem(GKEY,myGender); }catch(e){}
   document.querySelectorAll("[data-gender]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.gender===myGender)));
   if(ready3d){ W.scene.remove(meAvatar); meAvatar=makeAvatar(me.ci,myGender); }
   setPresence(true);
@@ -1019,7 +1034,7 @@ function updateZoneHud(){
 /* Bàn phím */
 const typing = () => { const a=document.activeElement; return a && (a.tagName==="INPUT"||a.tagName==="TEXTAREA"||a.tagName==="SELECT"); };
 addEventListener("keydown",e=>{
-  if(typing() || !$("lanDlg").hidden) return;
+  if(typing() || !$("lanDlg").hidden || !$("gate").hidden) return;
   const k=e.key.toLowerCase();
   if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(k)){
     if(document.activeElement===vp || vp.matches(":hover")){ keys.add(k); target=null; e.preventDefault(); }
@@ -1232,18 +1247,19 @@ function regNameOf(id){
   return it && typeof it.ten==="string" ? it.ten.replace(/\s+/g," ").trim().slice(0,40) : "";
 }
 const cleanName = s => typeof s==="string" ? s.replace(/\s+/g," ").trim().slice(0,40) : "";
-/* Mỗi tab giữ một tên riêng (sessionStorage), nên một tài khoản mở 2 tab đi lễ được với 2 tên */
-const TAB_KEY="an-nhien-ten-tab";
-let tabName=""; try{ tabName=cleanName(sessionStorage.getItem(TAB_KEY)||""); }catch(e){}
+/* Tên đại diện nhập khi vào chùa, nhớ trên trình duyệt này để lần sau không phải nhập lại */
+const TAB_KEY="an-nhien-ten-dai-dien";
+let tabName=""; try{ tabName=cleanName(localStorage.getItem(TAB_KEY)||""); }catch(e){}
 const myName = () => tabName || regNameOf(uid) || myProfileName || "Bạn";
 function setTabName(n){
   tabName=cleanName(n);
-  try{ sessionStorage.setItem(TAB_KEY,tabName); }catch(e){}
+  try{ localStorage.setItem(TAB_KEY,tabName); }catch(e){}
   if($("myName").value!==tabName) $("myName").value=tabName;
   refreshNames();
 }
 function refreshNames(){
   meTag.textContent=myName();
+  if(!isOwner){ const rep=$("people").querySelector("input"); if(rep) rep.value=tabName; }
   const mine=[...new Set(myRegItems().flatMap(it=>peopleOf(it).names).map(cleanName).filter(Boolean))].slice(0,40);
   $("myNames").innerHTML=mine.map(n=>`<option value="${esc(n)}"></option>`).join("");
   if(document.activeElement!==$("myName")) $("myName").placeholder = myName()==="Bạn" ? "Nhập tên hiển thị" : myName();
@@ -1374,7 +1390,10 @@ document.querySelectorAll("[data-gender]").forEach(b=>{
   b.setAttribute("aria-pressed",String(b.dataset.gender===myGender));
   b.addEventListener("click",()=>{ setGender(b.dataset.gender); toast(b.dataset.gender==="f"?"Đã đổi sang nhân vật nữ":"Đã đổi sang nhân vật nam"); });
 });
-$("myNameBtn").addEventListener("click",()=>{ setTabName($("myName").value); toast(`Bạn đang đi lễ với tên ${myName()}`); });
+$("myNameBtn").addEventListener("click",()=>{
+  if(!cleanName($("myName").value)){ $("myName").value=tabName; toast("Tên đại diện không được để trống."); return; }
+  setTabName($("myName").value); toast(`Bạn đang đi lễ với tên ${myName()}`);
+});
 $("myName").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); $("myNameBtn").click(); } });
 $("chatForm").addEventListener("submit",async e=>{ e.preventDefault(); const inp=$("chatInput"); if(await sendChat(inp.value)) inp.value=""; });
 $("chatInput").addEventListener("keydown",e=>{ if(e.key==="Escape"){ e.preventDefault(); vp.focus({preventScroll:true}); } });
@@ -1409,7 +1428,7 @@ async function initRoom(){
 /* =========================================================
    8. Đăng ký đi lễ và hoa đăng (db dùng chung)
    ========================================================= */
-let db=null, uid=null, isOwner=false, canWrite=null;
+let db=null, uid=null, isOwner=false, ownerUid=null, canWrite=null;
 let regDocs=[], lanDocs=[], regLoaded=false, lanLoaded=false, writing=Promise.resolve();
 const queue = fn => (writing = writing.then(fn,fn));
 
@@ -1417,7 +1436,7 @@ function setNote(t){ $("dataNote").textContent=t; }
 async function initData(){
   if(C && C.use){
     try{ user=await C.use("user"); }catch(e){ user=null; }
-    if(user){ uid=await user.id(); isOwner=await user.isOwner(); canWrite=await user.can("data.write"); try{ myProfileName=cleanName((await user.me()).name); }catch(e){} refreshNames(); }
+    if(user){ uid=await user.id(); isOwner=await user.isOwner(); ownerUid=user.ownerId?await user.ownerId():null; canWrite=await user.can("data.write"); try{ myProfileName=cleanName((await user.me()).name); }catch(e){} setRegRole(); refreshNames(); }
     try{ db=await C.use("db"); }catch(e){ db=null; }
   }
   if(!db){
@@ -1462,6 +1481,11 @@ async function renderReg(){
 }
 /* Danh sách người của một đăng ký (đọc được cả mục kiểu cũ chỉ có tên + số người) */
 function peopleOf(it){
+  // Chỉ đăng ký của chủ trang mới được tính nhiều người; dữ liệu ghi thẳng vào cơ sở dữ liệu cũng không qua được bước này
+  if(it.owner && it.owner!==ownerUid){
+    const first = Array.isArray(it.nguoi) && typeof it.nguoi[0]==="string" ? it.nguoi[0] : it.ten;
+    return {names:[typeof first==="string" && first.trim() ? first.trim().slice(0,60) : "Phật tử"], count:1};
+  }
   const arr = Array.isArray(it.nguoi) ? it.nguoi.filter(s=>typeof s==="string" && s.trim()).slice(0,20).map(s=>s.trim().slice(0,60)) : [];
   if(arr.length) return {names:arr, count:arr.length};
   return {names:[typeof it.ten==="string" && it.ten.trim() ? it.ten.trim().slice(0,60) : "Phật tử"], count:Math.max(1,Math.min(50,Number(it.songuoi)||1))};
@@ -1475,7 +1499,7 @@ function relabelPeople(){
   $("addPerson").disabled = rows.length>=MAX_PPL;
 }
 function addPersonRow(val=""){
-  const box=$("people"); if(box.children.length>=MAX_PPL) return null;
+  const box=$("people"); if(box.children.length>=(isOwner?MAX_PPL:1)) return null;
   const r=document.createElement("div"); r.className="prow";
   const no=document.createElement("span"); no.className="no";
   const i=document.createElement("input"); i.type="text"; i.maxLength=60; i.value=val; i.id="p-"+rid();
@@ -1483,8 +1507,18 @@ function addPersonRow(val=""){
   x.addEventListener("click",()=>{ if(box.children.length>1) r.remove(); else i.value=""; relabelPeople(); });
   r.append(no,i,x); box.appendChild(r); relabelPeople(); return i;
 }
-function resetPeople(){ $("people").innerHTML=""; addPersonRow(); }
-resetPeople();
+function resetPeople(){
+  $("people").innerHTML="";
+  const i=addPersonRow(isOwner?"":tabName);
+  if(!isOwner && i){ i.readOnly=true; i.closest(".prow").querySelector(".x").hidden=true; }
+}
+/* Chủ trang được thêm nhiều người; người khác chỉ đăng ký bằng tên đại diện của mình */
+function setRegRole(){
+  $("addPerson").hidden=!isOwner;
+  $("pplHint").textContent=isOwner?"Người đầu tiên là người đại diện đăng ký.":"Bạn đăng ký bằng tên đại diện đã nhập khi vào chùa.";
+  resetPeople();
+}
+setRegRole();
 $("addPerson").addEventListener("click",()=>{ const i=addPersonRow(); if(i) i.focus(); });
 $("people").addEventListener("keydown",e=>{
   if(e.key!=="Enter" || e.target.tagName!=="INPUT") return;
@@ -1505,10 +1539,12 @@ $("regForm").addEventListener("submit",e=>{
   e.preventDefault(); if(!db||!uid) return;
   const st=$("regStatus");
   const seen=new Set(), names=[];
-  for(const inp of $("people").querySelectorAll("input")){
-    const v=inp.value.replace(/\s+/g," ").trim().slice(0,60);
-    if(v && !seen.has(v.toLowerCase())){ seen.add(v.toLowerCase()); names.push(v); }
-  }
+  if(isOwner){
+    for(const inp of $("people").querySelectorAll("input")){
+      const v=inp.value.replace(/\s+/g," ").trim().slice(0,60);
+      if(v && !seen.has(v.toLowerCase())){ seen.add(v.toLowerCase()); names.push(v); }
+    }
+  } else if(tabName) names.push(tabName);
   if(!names.length){ st.className="status err"; st.textContent="Hãy nhập tên ít nhất một người đi lễ."; $("people").querySelector("input").focus(); return; }
   const item={id:rid(), ten:names[0], nguoi:names, songuoi:names.length, ngay:$("rDay").value, buoi:$("rTime").value, nguyen:$("rWish").value.trim().slice(0,240), at:Date.now()};
   const todayIso=isoOf(new Date());
@@ -1517,7 +1553,7 @@ $("regForm").addEventListener("submit",e=>{
   items.push(item);
   $("regBtn").disabled=true; st.className="status"; st.textContent="Đang gửi…";
   queue(async()=>{
-    try{ await db.doc("dangky/"+uid).set({items}); st.className="status ok"; const L=dayLabel(item.ngay); st.textContent=`Đã đăng ký ${names.length} người đi lễ ${L.lunar}.`; $("rWish").value=""; resetPeople(); setTabName(item.ten); }
+    try{ await db.doc("dangky/"+uid).set({items}); st.className="status ok"; const L=dayLabel(item.ngay); st.textContent=`Đã đăng ký ${names.length} người đi lễ ${L.lunar}.`; $("rWish").value=""; resetPeople(); }
     catch(err){ st.className="status err"; st.textContent = err&&err.code==="quota_exceeded" ? "Danh sách đã đầy, chưa thêm được." : "Bạn chưa có quyền đăng ký trên trang này."; }
     $("regBtn").disabled=false;
   });
@@ -1570,7 +1606,25 @@ $("lanList").addEventListener("click",e=>{
   queue(async()=>{ try{ if(items.length) await db.doc("hoadang/"+owner).set({items}); else await db.doc("hoadang/"+owner).delete(); }catch(err){ b.disabled=false; } });
 });
 
-initRoom(); initData();
+/* Màn hình vào chùa: chỉ khi đã có tên và giới tính mới xuất hiện trong chùa */
+function enterTemple(){ $("gate").hidden=true; initRoom(); initData(); }
+let hasProfile=false; try{ hasProfile=!!tabName && !!localStorage.getItem(GKEY); }catch(e){}
+if(hasProfile) enterTemple();
+else{
+  let gateGender="";
+  $("gate").hidden=false; $("gateName").value=tabName; $("gateName").focus();
+  document.querySelectorAll("[data-gate-gender]").forEach(b=>b.addEventListener("click",()=>{
+    gateGender=b.dataset.gateGender;
+    document.querySelectorAll("[data-gate-gender]").forEach(o=>o.setAttribute("aria-pressed",String(o===b)));
+  }));
+  $("gateForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    const name=cleanName($("gateName").value);
+    if(!name){ $("gateErr").textContent="Hãy nhập tên đại diện."; $("gateName").focus(); return; }
+    if(!gateGender){ $("gateErr").textContent="Hãy chọn giới tính."; return; }
+    setTabName(name); setGender(gateGender); enterTemple();
+  });
+}
 </script>
 </body>
 </html>

@@ -13,7 +13,9 @@ Thư viện 3D (three.js r128) được tải từ cdnjs.cloudflare.com.
 
 ## Về dữ liệu
 
-Mọi người vào trang cùng đi lễ trong **một ngôi chùa chung**, dùng Firebase (Realtime Database và đăng nhập ẩn danh). Người đi lễ không phải tạo tài khoản.
+Mọi người vào trang cùng đi lễ trong **một ngôi chùa chung**, dùng Firebase (Realtime Database và đăng nhập ẩn danh). Người đi lễ không phải tạo tài khoản, chỉ cần nhập một tên đại diện và chọn giới tính khi vào. Tên không được kiểm tra trùng hay xác minh.
+
+Khi đăng ký đi lễ, chỉ chủ trang được thêm nhiều người. Người khác đăng ký một người bằng tên đại diện của mình; trang chỉ tính và hiển thị một người cho các đăng ký này.
 
 - Họ tên, lời nguyện, hoa đăng và lời nhắn hiện công khai cho tất cả người vào trang.
 - Luật truy cập nằm trong `database.rules.json`. Khi sửa file này, cần dán lại vào tab **Rules** của Realtime Database trên Firebase Console.
