@@ -51,8 +51,14 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(34px, 6vw, 
 .labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden }
 .tag { position: absolute; transform: translate(-50%, -100%); white-space: nowrap; font-size: 12px; padding: 1px 8px; border-radius: 99px; background: rgba(21,16,13,.7); color: var(--paper); border: 1px solid rgba(217,169,78,.35) }
 .tag.me { border-color: var(--gold); color: var(--gold) }
-.bubble { position: absolute; transform: translate(-50%, -100%); max-width: 220px; background: var(--paper); color: #3a2418; font-size: 13px; line-height: 1.35; padding: 6px 10px; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,.4); text-align: center; overflow-wrap: anywhere }
-.bubble::after { content: ""; position: absolute; left: 50%; bottom: -6px; margin-left: -6px; border: 6px solid transparent; border-bottom: 0; border-top-color: var(--paper) }
+/* Bong bóng lời thoại kiểu truyện tranh: viền mực đậm, bóng đổ cứng, đuôi nhọn chỉ về người nói */
+.bubble { position: absolute; transform: translate(-50%, calc(-100% - 12px)); width: max-content; max-width: 240px; background: #fffdf5; color: #231510; font-size: 13.5px; font-weight: 600; line-height: 1.35; padding: 8px 13px; border: 2.5px solid #231510; border-radius: 18px; box-shadow: 3px 3px 0 rgba(35,21,16,.85); text-align: center; overflow-wrap: anywhere }
+.bubble::before, .bubble::after { content: ""; position: absolute; left: 50%; border-style: solid; border-color: transparent; border-bottom: 0 }
+.bubble::before { bottom: -13px; margin-left: -10px; border-width: 13px 10px 0; border-top-color: #231510 }
+.bubble::after { bottom: -8px; margin-left: -6.5px; border-width: 9px 6.5px 0; border-top-color: #fffdf5 }
+.bubble .to { display: block; font-size: 11px; font-weight: 600; color: #a8322a }
+.bubble.forme { background: #ffe9a8 }
+.bubble.forme::after { border-top-color: #ffe9a8 }
 .chat { display: grid; gap: 8px; margin-top: 12px; padding: 12px 14px; background: var(--lacquer); border: 1px solid var(--line); border-radius: 8px }
 .chathead { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; align-items: baseline }
 .chathead b { font-family: var(--display); font-size: 21px; font-weight: 600; color: var(--paper) }
@@ -63,6 +69,8 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(34px, 6vw, 
 .msg { max-width: 82%; align-self: flex-start; display: grid; gap: 2px; min-width: 0 }
 .msg.me { align-self: flex-end; justify-items: end }
 .msg .who { font-size: 11.5px; color: var(--gold-soft); font-variant-numeric: tabular-nums }
+.msg[data-tab] { cursor: pointer }
+.msg.tome .txt { background: #ffe9a8; box-shadow: 0 0 0 2px var(--gold) }
 .msg .txt { background: var(--paper); color: #3a2418; padding: 7px 12px; border-radius: 14px 14px 14px 4px; overflow-wrap: anywhere; line-height: 1.45 }
 .msg.me .txt { background: var(--gold); color: #2a1712; border-radius: 14px 14px 4px 14px }
 .chatlog .m { overflow-wrap: anywhere }
@@ -76,8 +84,10 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(34px, 6vw, 
 .namerow input { flex: 1; min-width: 160px; max-width: 320px }
 .quick { display: flex; flex-wrap: wrap; gap: 6px }
 .quick button { font-size: 12.5px; padding: 4px 10px }
-.chatrow { display: flex; gap: 8px }
-.chatrow input { flex: 1; min-width: 0 }
+.chatrow { display: flex; flex-wrap: wrap; gap: 8px }
+.chatrow input { flex: 1 1 180px; min-width: 0 }
+.chatrow select { flex: 0 1 190px; width: auto; min-width: 0 }
+.chatnote { margin: 0; font-size: 12px; color: var(--muted) }
 .hud { position: absolute; background: var(--hud); border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; font-size: 13px; backdrop-filter: blur(4px) }
 .hud.tl { top: 12px; left: 12px }
 .hud.tl b { font-family: var(--display); font-size: 19px; color: var(--paper); font-weight: 600; display: block; line-height: 1.2 }
@@ -87,10 +97,12 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(34px, 6vw, 
 .dot.live { background: var(--ok); box-shadow: 0 0 8px var(--ok) }
 .goto { position: absolute; left: 12px; bottom: 12px; display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 180px) }
 .goto button { background: var(--hud); backdrop-filter: blur(4px); font-size: 12.5px; padding: 5px 10px }
-.act { position: absolute; left: 50%; bottom: 64px; transform: translateX(-50%); font-size: 16px !important; padding: 10px 22px !important; box-shadow: 0 6px 24px rgba(0,0,0,.45) }
+.acts { position: absolute; left: 50%; bottom: 64px; transform: translateX(-50%); display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: max-content; max-width: calc(100% - 24px); pointer-events: none }
+.act { pointer-events: auto; font-size: 15px !important; padding: 9px 16px !important; box-shadow: 0 6px 24px rgba(0,0,0,.45) }
+.act:not(.primary) { background: var(--hud); backdrop-filter: blur(4px) }
 .joy { position: absolute; right: 18px; bottom: 18px; width: 112px; height: 112px; border-radius: 50%; border: 1px solid rgba(217,169,78,.45); background: rgba(21,16,13,.45); display: none }
 .joy .knob { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: rgba(217,169,78,.55) }
-@media (pointer: coarse) { .joy { display: block } .goto { max-width: calc(100% - 150px) } .act { bottom: auto; top: 64px } }
+@media (pointer: coarse) { .joy { display: block } .goto { max-width: calc(100% - 150px) } .acts { bottom: auto; top: 64px } }
 .toast { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); background: var(--hud); border: 1px solid var(--gold-soft); color: var(--paper); padding: 8px 16px; border-radius: 6px; font-family: var(--display); font-size: 18px; text-align: center; max-width: min(90%, 460px); pointer-events: none }
 .dlg { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(10,7,5,.55); padding: 16px }
 .dlg .card { width: min(420px, 100%); background: var(--lacquer); border: 1px solid var(--gold-soft); border-radius: 8px; padding: 18px; display: grid; gap: 10px }
@@ -147,6 +159,13 @@ textarea { min-height: 64px; resize: vertical }
 .dlg.gate { position: fixed; z-index: 50; background: rgba(10,7,5,.92) }
 .gate input { font-size: 16px }
 .gate .gerr { min-height: 18px }
+/* Bảng điều khiển admin: xếp dọc, bám mép phải, bật tắt được */
+.admin { position: fixed; right: 0; top: 96px; z-index: 40; display: flex; flex-direction: column; align-items: flex-end; max-height: calc(100vh - 112px) }
+.admin > button { background: var(--gold); color: #2a1712; border-color: var(--gold); border-radius: 6px 0 0 6px; font-weight: 600; font-size: 13px; padding: 7px 12px }
+.admin > button:hover { background: #e6bb64 }
+.adminbody { width: 210px; display: flex; flex-direction: column; gap: 8px; padding: 12px; overflow-y: auto; background: var(--lacquer); border: 1px solid var(--gold-soft); border-right: 0; border-radius: 0 0 0 8px; box-shadow: -6px 6px 24px rgba(0,0,0,.45) }
+.adminbody button { width: 100%; text-align: left; font-size: 13px; padding: 7px 10px }
+.adminstat { display: grid; gap: 2px; font-size: 12.5px; color: var(--muted); padding-bottom: 8px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums }
 footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--line); padding-top: 14px }
 </style>
 </head>
@@ -165,6 +184,21 @@ footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--lin
     <button class="primary" type="submit" id="gateBtn">Vào chùa</button>
   </form>
 </div>
+<aside class="admin" id="adminPanel" aria-label="Bảng điều khiển admin" hidden>
+  <button type="button" id="adminToggle" aria-expanded="true" aria-controls="adminBody">Ẩn bảng điều khiển</button>
+  <div class="adminbody" id="adminBody">
+    <div class="adminstat" aria-live="polite">
+      <span id="adStatPeople"></span>
+      <span id="adStatReg"></span>
+      <span id="adStatLan"></span>
+    </div>
+    <button type="button" id="addPerson" hidden>+ Thêm người</button>
+    <button type="button" id="adRegJump">Danh sách đăng ký</button>
+    <button type="button" id="adLanJump">Hoa đăng trên hồ sen</button>
+    <button type="button" id="chatClear" hidden>Xóa hội thoại</button>
+    <button type="button" id="logoutBtn" hidden>Đăng xuất admin</button>
+  </div>
+</aside>
 <div class="wrap">
   <header>
     <div class="brand">
@@ -189,7 +223,11 @@ footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--lin
         <button data-go="bell">Lầu chuông</button>
         <button data-go="pond">Hồ sen</button>
       </div>
-      <button class="primary act" id="actBtn" hidden></button>
+      <div class="acts">
+        <button class="primary act" id="actBtn" hidden></button>
+        <button class="act" id="actIncense" hidden>Thắp hương (R)</button>
+        <button class="act" id="actKneel" hidden>Quỳ bái (Q)</button>
+      </div>
       <div class="joy" id="joy"><div class="knob" id="knob"></div></div>
       <div class="toast" id="toast" hidden></div>
       <div class="dlg" id="lanDlg" hidden>
@@ -203,10 +241,10 @@ footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--lin
       </div>
       <div class="loading" id="loading">Đang mây mù trên đỉnh Yên Tử…</div>
     </div>
-    <div class="hint">Bấm vào khung cảnh rồi đi bằng <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> hoặc phím mũi tên, kéo chuột để xoay góc nhìn, bấm xuống đất để đi tới đó, <kbd>E</kbd> để làm lễ, <kbd>Enter</kbd> để trò chuyện. Trên điện thoại dùng cần điều khiển ở góc phải.</div>
+    <div class="hint">Bấm vào khung cảnh rồi đi bằng <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> hoặc phím mũi tên, kéo chuột để xoay góc nhìn, bấm xuống đất để đi tới đó, <kbd>E</kbd> để làm lễ, <kbd>Enter</kbd> để trò chuyện. Trong chùa Đồng: <kbd>E</kbd> vái lạy, <kbd>R</kbd> thắp hương, <kbd>Q</kbd> quỳ bái. Trên điện thoại dùng cần điều khiển ở góc phải.</div>
     <div class="chat" id="chat">
-      <div class="chathead"><b>Hội thoại trên đỉnh Yên Tử</b><span><span id="chatState">Đang kết nối…</span> <button type="button" class="link" id="chatClear" hidden>Xóa hội thoại</button></span></div>
-      <div class="namerow"><label for="myName">Tên đại diện của bạn</label><input type="text" id="myName" maxlength="40" placeholder="Nhập tên hiển thị" list="myNames"><datalist id="myNames"></datalist><button type="button" id="myNameBtn">Đổi tên</button><button type="button" id="logoutBtn" hidden>Đăng xuất admin</button>
+      <div class="chathead"><b>Hội thoại trên đỉnh Yên Tử</b><span id="chatState">Đang kết nối…</span></div>
+      <div class="namerow"><label for="myName">Tên đại diện của bạn</label><input type="text" id="myName" maxlength="40" placeholder="Nhập tên hiển thị" list="myNames"><datalist id="myNames"></datalist><button type="button" id="myNameBtn">Đổi tên</button>
         <div class="seg" role="group" aria-label="Nhân vật"><button type="button" data-gender="m" aria-pressed="true">Nam</button><button type="button" data-gender="f" aria-pressed="false">Nữ</button></div></div>
       <div class="chatlog" id="chatLog" aria-live="polite"><div class="sys">Đang tải hội thoại…</div></div>
       <div class="quick" id="quick">
@@ -218,9 +256,12 @@ footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--lin
       </div>
       <form class="chatrow" id="chatForm" autocomplete="off">
         <label for="chatInput" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Lời nhắn</label>
+        <label for="chatTo" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Nói với</label>
+        <select id="chatTo"><option value="">Nói với mọi người</option></select>
         <input type="text" id="chatInput" maxlength="200" placeholder="Nhắn với mọi người đang đi lễ…">
         <button class="primary" type="submit">Gửi</button>
       </form>
+      <p class="chatnote">Chọn một người để bắt chuyện, hoặc bấm vào lời nhắn của họ để trả lời. Lời nói hiện thành bong bóng trên đầu trong ít nhất 30 giây. Mọi người trong chùa đều đọc được, kể cả khi nói riêng với một người.</p>
     </div>
   </section>
 
@@ -231,7 +272,7 @@ footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--lin
       <form class="reg" id="regForm" autocomplete="off">
         <div class="fld full"><label id="pplLabel">Người đi lễ</label>
           <div class="people" id="people" role="group" aria-labelledby="pplLabel"></div>
-          <div class="formrow"><button type="button" id="addPerson" hidden>+ Thêm người</button><span class="status" id="pplHint"></span></div>
+          <div class="formrow"><span class="status" id="pplHint"></span></div>
         </div>
         <div class="fld"><label for="rDay">Ngày đi lễ</label><select id="rDay"></select></div>
         <div class="fld"><label for="rTime">Buổi</label><select id="rTime"><option>Sáng</option><option>Chiều</option><option>Tối</option></select></div>
@@ -283,8 +324,11 @@ if(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL && !(window.claude && w
     ensureApp();
     const auth=firebase.auth();
     await new Promise(ok=>{ const off=auth.onAuthStateChanged(()=>{ off(); ok(); }); });
-    const timeout=new Promise((_,no)=>setTimeout(()=>no(new Error("auth_timeout")),15000));
-    const account=auth.currentUser||(await Promise.race([auth.signInAnonymously(),timeout])).user;
+    let account=auth.currentUser;
+    if(!account){
+      const timeout=new Promise((_,no)=>setTimeout(()=>no(new Error("auth_timeout")),15000));
+      account=(await Promise.race([auth.signInAnonymously(),timeout])).user;
+    }
     const root=firebase.database().ref();
     const owner=await root.child("config/owner").once("value").then(s=>s.val()).catch(()=>null);
     return {uid:account.uid,root,owner:owner||null,isOwner:!!owner&&owner===account.uid};
@@ -514,6 +558,10 @@ const obstaclesBox=[], obstaclesCirc=[];
 const altarFlames=[], clouds=[];
 let bellMesh=null, bellSwing=0, smokePool=[], smokeBoost=0, sticksGroup=null, lanternGroup=null, pondT=0;
 const POND={x:-15,z:6,r:6}, BELL={x:15,z:6}, LUHUONG={x:0,z:-4};
+/* 20 chỗ quỳ trong chánh điện: 5 cột, 4 hàng, cách nhau rộng rãi */
+const KNEEL_SPOTS=[];
+for(const z of [-20,-18.2,-16.4,-14.6]) for(const x of [-5.6,-2.8,0,2.8,5.6]) KNEEL_SPOTS.push({x,z});
+let hallSticks=null, hallIncenseUntil=0; const hallSticksList=[];
 
 if(ready3d){
   const renderer=new THREE.WebGLRenderer({canvas:$("gl"),antialias:true});
@@ -810,6 +858,7 @@ if(ready3d){
     lathe([[0,0.04],[0.18,0.04],[0.27,0.12],[0.29,0.24],[0.26,0.27],[0,0.27]],BRONZE,bh,24);
     for(let i=0;i<3;i++){ const a=i/3*Math.PI*2+Math.PI/2; mk(new THREE.CylinderGeometry(0.025,0.035,0.08,6),BRONZE,Math.cos(a)*0.17,0.03,Math.sin(a)*0.17,bh); }
     for(let i=0;i<3;i++){ const x=(i-1)*0.07; mk(new THREE.CylinderGeometry(0.008,0.008,0.42,4),W.mat.pillar||M(0x8e2a1f),x,0.48,0,bh); mk(new THREE.SphereGeometry(0.014,6,5),M(0xff7a2a,{emissive:0xff5a10}),x,0.69,0,bh); } }
+  hallSticks=new THREE.Group(); hallSticks.position.set(0,TOP,HAZ-0.22); scene.add(hallSticks);
   // đèn nến, lọ hoa sen, chén nước, mâm ngũ quả
   for(const sx of [-1,1]){
     const c=new THREE.Group(); c.position.set(sx*1.6,TOP,HAZ-0.2); scene.add(c);
@@ -851,7 +900,8 @@ if(ready3d){
     mk(new THREE.CylinderGeometry(0.32,0.34,0.36,16),LACQ,0,0.18,0,g); mk(new THREE.CylinderGeometry(0.3,0.3,0.06,16),M(0xb8862e),0,0.39,0,g);
     lathe([[0,0.42],[0.12,0.42],[0.22,0.5],[0.25,0.64],[0.24,0.66],[0.2,0.66],[0.2,0.5],[0,0.48]],BRONZE,g,24);
     const st=mk(new THREE.CylinderGeometry(0.02,0.02,0.4,6),M(0x6b3a1e),0.3,0.5,0.1,g); st.rotation.z=1.0; }
-  for(const sx of [-1,1]){ mk(new THREE.CylinderGeometry(0.34,0.36,0.12,20),M(0xb07a2a),sx*0.85,1.06,-20.55,scene); mk(new THREE.TorusGeometry(0.33,0.04,6,20),M(0x8a5a1e),sx*0.85,1.12,-20.55,scene).rotation.x=Math.PI/2; }
+  { const padGeo=new THREE.CylinderGeometry(0.42,0.45,0.12,20), rimGeo=new THREE.TorusGeometry(0.41,0.04,6,20), padMat=M(0xb07a2a), rimMat=M(0x8a5a1e);
+    for(const s of KNEEL_SPOTS){ mk(padGeo,padMat,s.x,1.06,s.z,scene); mk(rimGeo,rimMat,s.x,1.12,s.z,scene).rotation.x=Math.PI/2; } }
   obstaclesBox.push([-3.65,3.65,-26.6,-21.45]);
   obstaclesCirc.push([-3.5,-21.2,0.4],[3.5,-21.2,0.4]);
 
@@ -966,13 +1016,21 @@ function makeAvatar(ci,gender){
     for(let q=0;q<5;q++){ const a=q/5*Math.PI*2; E(L(0xf0a8b8),fl,Math.cos(a)*0.035,Math.sin(a)*0.035,0,0.03,0.03,0.015,chibiGeo.lo); }
     E(L(0xf6d36a),fl,0,0,0.01,0.018,0.018,0.012,chibiGeo.lo);
   }
-  g.userData={body,arms,head,gender:f?"f":"m",ci};
+  // ba nén hương cầm trên tay khi dâng hương
+  const stick=new THREE.Group(); stick.position.set(0,0.62,0.3); stick.visible=false; body.add(stick);
+  for(let q=0;q<3;q++){ const x=(q-1)*0.03;
+    const sb=new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.5,4),L(0x8e2a1f)); sb.position.set(x,0.2,0); stick.add(sb);
+    const tip=new THREE.Mesh(new THREE.SphereGeometry(0.016,6,5),new THREE.MeshBasicMaterial({color:0xff7a2a})); tip.position.set(x,0.45,0); stick.add(tip); }
+  g.userData={body,arms,head,stick,gender:f?"f":"m",ci};
   W.scene.add(g); return g;
 }
-// Tư thế: vung tay khi đi, chắp tay vái khi lễ
-function poseAvatar(av,bowAmt,walking,t){
+// Tư thế: vung tay khi đi, chắp tay vái khi lễ; quỳ thì hạ thấp người và cúi lạy chậm
+function poseAvatar(av,bowAmt,walking,t,kneel){
   const u=av.userData; if(!u||!u.body) return;
-  u.body.rotation.x = bowAmt*0.55;
+  const prostrate = kneel ? (reduceMotion ? 0.25 : Math.pow(Math.max(0,Math.sin(t/1200)),2)) : 0;
+  u.body.position.y = kneel ? -0.24 : 0;
+  u.body.rotation.x = kneel ? prostrate*1.05 : bowAmt*0.55;
+  if(u.stick) u.stick.visible=!!u.incense;
   for(const a of u.arms){
     const sx=a.userData.side;
     if(bowAmt>0.02 || u.pray){ a.rotation.set(-1.25,0,-sx*0.62); }
@@ -982,7 +1040,8 @@ function poseAvatar(av,bowAmt,walking,t){
 }
 const GKEY="an-nhien-gioi-tinh";
 let myGender="m"; try{ const s=localStorage.getItem(GKEY); if(s==="f"||s==="m") myGender=s; }catch(e){}
-const me={ x:0, z:37, ry:Math.PI, bow:0, moving:false, ci:Math.floor(Math.random()*4), y:0 };
+const me={ x:0, z:37, ry:Math.PI, bow:0, moving:false, ci:Math.floor(Math.random()*4), y:0, seat:-1, kneeling:false, holdT:0 };
+let pendingAct=null; // việc sẽ làm khi đi tới nơi: "kneel" hoặc "incense"
 let meAvatar=null, camYaw=0, camPitch=0.42, target=null;
 const keys=new Set(), joyVec={x:0,y:0};
 if(ready3d){ meAvatar=makeAvatar(me.ci,myGender); }
@@ -1017,21 +1076,29 @@ function tryMove(dx,dz){
 }
 
 const ZONES=[
-  {id:"hall", name:"Chùa Đồng", hint:"Ngôi chùa đúc bằng đồng trên đỉnh Yên Tử", x:0,z:-21,r:4.6, act:"Lễ Phật", go:[0,-19.7]},
+  {id:"hall", name:"Chùa Đồng", hint:"Vái lạy, thắp hương hoặc quỳ bái trên bồ đoàn", x:0,z:-21,r:4.6, rect:[-8,8,-27,-13.2], act:"Vái lạy", go:[0,-20.8]},
   {id:"luhuong", name:"Lư hương", hint:"Thắp hương trước khi vào chánh điện", x:LUHUONG.x,z:LUHUONG.z,r:3.4, act:"Thắp hương", go:[0,-1]},
   {id:"bell", name:"Lầu chuông", hint:"Thỉnh chuông cầu an", x:BELL.x,z:BELL.z,r:4.6, act:"Thỉnh chuông", go:[11.6,6]},
   {id:"pond", name:"Hồ sen đá", hint:"Thả hoa đăng gửi lời nguyện", x:POND.x,z:POND.z,r:8.6, act:"Thả hoa đăng", go:[-15,13.4]},
 ];
 let curZone=null, zoneKey="";
 function zoneAt(){
-  for(const zn of ZONES){ const dx=me.x-zn.x, dz=me.z-zn.z; if(dx*dx+dz*dz<zn.r*zn.r) return zn; }
+  for(const zn of ZONES){
+    if(zn.rect){ if(me.x>zn.rect[0] && me.x<zn.rect[1] && me.z>zn.rect[2] && me.z<zn.rect[3]) return zn; continue; }
+    const dx=me.x-zn.x, dz=me.z-zn.z; if(dx*dx+dz*dz<zn.r*zn.r) return zn;
+  }
   return null;
+}
+function updateActs(){
+  const inHall = !!curZone && curZone.id==="hall";
+  $("actIncense").hidden=!inHall; $("actKneel").hidden=!inHall;
+  $("actKneel").textContent = (me.kneeling||pendingAct==="kneel") ? "Đứng dậy (Q)" : "Quỳ bái (Q)";
 }
 function updateZoneHud(){
   const zn=zoneAt();
   const key = zn ? zn.id : me.z>30 ? "gate" : (me.z<-13 && Math.abs(me.x)<8) ? "inhall" : "yard";
   if(key===zoneKey) return;
-  zoneKey=key; curZone=zn;
+  zoneKey=key; curZone=zn; updateActs();
   if(zn){ $("zoneName").textContent=zn.name; $("zoneHint").textContent=zn.hint; $("actBtn").textContent=`${zn.act}  (E)`; $("actBtn").hidden=false; }
   else {
     $("actBtn").hidden=true;
@@ -1050,6 +1117,7 @@ addEventListener("keydown",e=>{
     if(document.activeElement===vp || vp.matches(":hover")){ keys.add(k); target=null; e.preventDefault(); }
   }
   if(k==="e" && curZone && (document.activeElement===vp || vp.matches(":hover"))){ doAction(curZone.id); e.preventDefault(); }
+  if((k==="q"||k==="r") && curZone && curZone.id==="hall" && (document.activeElement===vp || vp.matches(":hover"))){ if(k==="q") toggleKneel(); else offerIncense(); e.preventDefault(); }
   if((k==="enter"||k==="t") && document.activeElement===vp){ keys.clear(); $("chatInput").focus({preventScroll:true}); e.preventDefault(); }
 });
 addEventListener("keyup",e=>keys.delete(e.key.toLowerCase()));
@@ -1093,12 +1161,15 @@ function joyMove(e){
 /* Nút "đi tới" */
 document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>{
   const zn=ZONES.find(z=>z.id===b.dataset.go); if(!zn) return;
+  standUp();
   // đi tắt: dịch chuyển nhanh tới nơi, quay mặt về phía khu vực
   me.x=zn.go[0]; me.z=zn.go[1]; me.y=floorY(me.x,me.z); target=null;
   const fx=zn.x-me.x, fz=zn.z-me.z; me.ry=Math.atan2(fx,fz); camYaw=me.ry+Math.PI;
   vp.focus({preventScroll:true});
 }));
 $("actBtn").addEventListener("click",()=>{ if(curZone) doAction(curZone.id); });
+$("actIncense").addEventListener("click",()=>offerIncense());
+$("actKneel").addEventListener("click",()=>toggleKneel());
 
 /* =========================================================
    5. Nghi lễ trong khuôn viên
@@ -1124,11 +1195,64 @@ function doAction(id){
   if(id==="bell"){ ringBell(false); roomEmit("bell"); }
   else if(id==="luhuong"){ lightIncense(false); roomEmit("incense"); }
   else if(id==="hall"){
-    if(me.bow>0) return;
+    if(me.bow>0 || me.holdT>0) return;
+    standUp(); target=null;
     me.bow=3; me.ry=Math.PI; setPresence(true); toast("Nam mô Bổn Sư Thích Ca Mâu Ni Phật",4200);
     [0,1000,2000].forEach(ms=>setTimeout(()=>bowlBell(),ms)); // ba tiếng chuông gia trì theo ba vái
   }
   else if(id==="pond"){ openLantern(); }
+}
+/* Đứng dậy và trả lại chỗ quỳ */
+function standUp(){
+  if(me.seat<0 && !pendingAct) return;
+  if(pendingAct) target=null;
+  me.seat=-1; me.kneeling=false; pendingAct=null;
+  setPresence(true); updateActs();
+}
+/* Chỗ quỳ đang có người giữ, theo vị trí mọi người báo qua room */
+function takenSpots(){
+  const out=new Set(); if(!room) return out;
+  for(const p of room.peers()){ if(p.sameTab) continue; const s=p.presence&&p.presence.s; if(typeof s==="number" && s>=0) out.add(s); }
+  return out;
+}
+function toggleKneel(){
+  if(me.kneeling || pendingAct==="kneel"){ standUp(); return; }
+  if(me.bow>0 || me.holdT>0) return;
+  const taken=takenSpots(); let best=-1, bestD=Infinity;
+  KNEEL_SPOTS.forEach((s,i)=>{ if(taken.has(i)) return; const d=Math.hypot(s.x-me.x,s.z-me.z); if(d<bestD){ bestD=d; best=i; } });
+  if(best<0){ toast("Cả 20 chỗ quỳ đều đã có người, xin đợi một lát."); return; }
+  me.seat=best; pendingAct="kneel"; target={x:KNEEL_SPOTS[best].x,z:KNEEL_SPOTS[best].z};
+  setPresence(true); updateActs();
+}
+function offerIncense(){
+  if(me.bow>0 || me.holdT>0) return;
+  standUp();
+  pendingAct="incense"; target={x:Math.max(-1.6,Math.min(1.6,me.x)),z:-20.8};
+}
+function finishPending(){
+  const act=pendingAct; pendingAct=null;
+  if(act==="kneel" && me.seat>=0){
+    const s=KNEEL_SPOTS[me.seat];
+    if(Math.hypot(s.x-me.x,s.z-me.z)<0.7){ me.x=s.x; me.z=s.z; me.ry=Math.PI; me.kneeling=true; toast(`Quỳ bái tại chỗ số ${me.seat+1}. Đi hoặc bấm Đứng dậy khi xong.`,3600); bowlBell(); }
+    else me.seat=-1;
+    setPresence(true); updateActs();
+  } else if(act==="incense" && me.z<-20 && Math.abs(me.x)<2.4){
+    me.ry=Math.PI; me.holdT=2.4; setPresence(true); toast("Xin dâng ba nén hương lên ban Tam Bảo",2600);
+  }
+}
+/* Thêm ba nén hương vào bát hương trên hương án */
+function plantHallIncense(fromOther){
+  if(!ready3d || !hallSticks) return;
+  const now=performance.now(), g=new THREE.Group(), base=hallSticksList.length;
+  const a0=(base*1.7)%(Math.PI*2), r=0.06+(base%4)*0.04;
+  g.position.set(Math.cos(a0)*r,0,Math.sin(a0)*r);
+  for(let i=0;i<3;i++){ const x=(i-1)*0.05;
+    const s=new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.46,4),new THREE.MeshLambertMaterial({color:0x8e2a1f})); s.position.set(x,0.5,0); g.add(s);
+    const t=new THREE.Mesh(new THREE.SphereGeometry(0.015,6,5),new THREE.MeshBasicMaterial({color:0xff7a2a})); t.position.set(x,0.73,0); g.add(t); }
+  hallSticks.add(g); hallSticksList.push({g,until:now+120000});
+  while(hallSticksList.length>12) hallSticks.remove(hallSticksList.shift().g);
+  hallIncenseUntil=now+120000;
+  if(!fromOther) toast("Hương đã thắp, khói hương bay lên trước ban Tam Bảo.");
 }
 
 /* =========================================================
@@ -1169,18 +1293,23 @@ function frame(now){
     if(d<0.3) target=null; else { mx=dx/d; mz=dz/d; }
   }
   me.moving=false;
-  if((mx||mz) && me.bow<=0){
+  if((mx||mz) && me.bow<=0 && me.holdT<=0){
+    if(me.kneeling) standUp();
     const sp=6*dt;
     if(tryMove(mx*sp,mz*sp)){ me.moving=true; me.ry=Math.atan2(mx,mz); } else target=null;
   }
+  if(pendingAct && !target) finishPending();
   me.y+= (floorY(me.x,me.z)-me.y)*Math.min(1,dt*12);
   if(me.bow>0) me.bow-=dt;
+  if(me.holdT>0){ me.holdT-=dt; if(me.holdT<=0){ me.holdT=0; plantHallIncense(false); roomEmit("hallincense"); setPresence(true); } }
+  while(hallSticksList.length && hallSticksList[0].until<now) hallSticks.remove(hallSticksList.shift().g);
   // Nhân vật của mình
   meAvatar.position.set(me.x,me.y+(me.moving&&!reduceMotion?Math.abs(Math.sin(now/120))*0.06:0),me.z);
   meAvatar.rotation.y=me.ry;
   // vái ba vái trong 3 giây, chắp tay suốt lúc lễ
-  meAvatar.userData.pray = me.bow>0;
-  poseAvatar(meAvatar, me.bow>0 ? Math.max(0,Math.sin((3-me.bow)/3*Math.PI*3)) : 0, me.moving, now);
+  meAvatar.userData.pray = me.bow>0 || me.kneeling || me.holdT>0;
+  meAvatar.userData.incense = me.holdT>0;
+  poseAvatar(meAvatar, me.bow>0 ? Math.max(0,Math.sin((3-me.bow)/3*Math.PI*3)) : 0, me.moving, now, me.kneeling);
   // Camera
   const inHall = me.x>-8 && me.x<8 && me.z<-13;
   const dist = inHall ? Math.min(camDistUser,6.2) : camDistUser;
@@ -1198,7 +1327,7 @@ function frame(now){
       s.position.set(LUHUONG.x+(Math.random()-.5)*0.6,lit?2.9:2.0,LUHUONG.z+(Math.random()-.5)*0.6); s.scale.set(0.5,0.5,0.5); }
   }
   // khói nhang mảnh trên hương án trong chánh điện
-  if(Math.random()<(reduceMotion?1:2.5)*dt){
+  if(Math.random()<(reduceMotion?1:2.5)*(now<hallIncenseUntil?3:1)*dt){
     const s=smokePool.find(p=>!p.visible);
     if(s){ s.visible=true; s.userData={life:0,max:3.5+Math.random(),vx:(Math.random()-.5)*0.04,vz:(Math.random()-.5)*0.04,ph:Math.random()*6,k:0.28};
       s.position.set((Math.random()-.5)*0.12,2.75,-22.27); s.scale.set(0.15,0.15,0.15); }
@@ -1220,8 +1349,9 @@ function frame(now){
     let dr=p.try-p.ry; dr=Math.atan2(Math.sin(dr),Math.cos(dr)); p.ry+=dr*Math.min(1,dt*8);
     p.g.position.set(p.x,floorY(p.x,p.z),p.z); p.g.rotation.y=p.ry;
     const pw=Math.hypot(p.tx-p.x,p.tz-p.z)>0.05;
-    p.g.userData.pray=p.bowing;
-    poseAvatar(p.g, p.bowing ? Math.max(0,Math.sin(now/333)) : 0, pw, now);
+    p.g.userData.pray=p.bowing||p.kneeling||p.holding;
+    p.g.userData.incense=!!p.holding;
+    poseAvatar(p.g, p.bowing ? Math.max(0,Math.sin(now/333)) : 0, pw, now, !!p.kneeling);
     placeTag(p.tag,p.x,floorY(p.x,p.z)+1.72,p.z);
     placeBubble(p,now,p.x,floorY(p.x,p.z)+2.12,p.z);
   }
@@ -1244,7 +1374,7 @@ const C=window.claude;
 async function roomEmit(topic){ if(!room) return; try{ await room.emit(topic,{t:Date.now()}); }catch(e){} }
 function setPresence(force){
   if(!room) return;
-  const p={x:Math.round(me.x*10)/10,z:Math.round(me.z*10)/10,r:Math.round(me.ry*100)/100,c:me.ci,g:myGender,tid:tabId,b:me.bow>0?1:0,n:myName()==="Bạn"?"":myName()};
+  const p={x:Math.round(me.x*10)/10,z:Math.round(me.z*10)/10,r:Math.round(me.ry*100)/100,c:me.ci,g:myGender,tid:tabId,b:me.bow>0?1:0,s:me.seat,k:me.kneeling?1:0,i:me.holdT>0?1:0,n:myName()==="Bạn"?"":myName()};
   const s=JSON.stringify(p); if(s===lastSent && !force) return; lastSent=s;
   room.presence(p).catch(()=>{});
 }
@@ -1301,10 +1431,16 @@ async function renderPeers(list){
       o={g:makeAvatar(Number(pr.c)||0,pr.g==="f"?"f":"m"),tag,x:pr.x,z:pr.z,ry:pr.r||0,by:p.by}; peers.set(p.peer,o); }
     const wantG=pr.g==="f"?"f":"m";
     if(o.g.userData.gender!==wantG){ W.scene.remove(o.g); o.g=makeAvatar(Number(pr.c)||0,wantG); }
-    o.tx=Math.max(-40,Math.min(40,pr.x)); o.tz=Math.max(-40,Math.min(45,pr.z)); o.try=Number(pr.r)||0; o.bowing=!!pr.b; o.by=p.by; o.isMe=p.isMe; o.pn=pr.n; o.tid=typeof pr.tid==="string"?pr.tid:"";
+    o.tx=Math.max(-40,Math.min(40,pr.x)); o.tz=Math.max(-40,Math.min(45,pr.z)); o.try=Number(pr.r)||0; o.bowing=!!pr.b; o.kneeling=!!pr.k; o.holding=!!pr.i; o.by=p.by; o.isMe=p.isMe; o.pn=pr.n; o.tid=typeof pr.tid==="string"?pr.tid:"";
   }
   for(const [k,o] of peers) if(!live.has(k)){ W.scene.remove(o.g); o.tag.remove(); if(o.bubble) o.bubble.remove(); peers.delete(k); }
   for(const o of peers.values()) o.tag.textContent = await nameOf(o.by,o.pn,o.isMe);
+  syncChatTo();
+  // Hai người cùng chọn một chỗ quỳ một lúc: người có mã nhỏ hơn giữ chỗ, người còn lại đứng dậy
+  if(me.seat>=0){
+    const mine=list.find(p=>p.sameTab);
+    if(mine && others.some(p=>p.presence && p.presence.s===me.seat && p.peer<mine.peer)){ standUp(); toast("Chỗ này vừa có người quỳ, hãy chọn chỗ khác."); }
+  }
   const n=others.length;
   $("online").textContent = n ? `${n+1} người đang trong chùa` : "Chỉ có bạn trong chùa";
   $("chatState").textContent = n ? `${n} người khác đang nghe` : "Chưa có ai khác trong chùa";
@@ -1315,9 +1451,36 @@ async function renderPeers(list){
 const meChat={};
 let lastChat=0, roomStart=0, chatDocs=[], chatSeen=new Set(), chatPrimed=false, myTabItems=[], roomMsgs=[];
 const tabId=(rid().replace(/[^a-z0-9]/g,"")+"x").slice(0,14);
-function showBubble(holder,text){
-  if(!holder.bubble){ holder.bubble=document.createElement("div"); holder.bubble.className="bubble"; labelsEl.appendChild(holder.bubble); }
-  holder.bubble.textContent=text; holder.bubbleUntil=performance.now()+6500;
+const BUBBLE_MS=30000; // giữ ít nhất 30 giây, lời mới của cùng người sẽ thay ngay
+function showBubble(holder,text,toName,forMe){
+  if(!holder.bubble){ holder.bubble=document.createElement("div"); labelsEl.appendChild(holder.bubble); }
+  holder.bubble.className="bubble"+(forMe?" forme":"");
+  holder.bubble.textContent="";
+  if(toName){ const to=document.createElement("span"); to.className="to"; to.textContent=`→ ${forMe?"Bạn":toName}`; holder.bubble.appendChild(to); }
+  holder.bubble.appendChild(document.createTextNode(text));
+  holder.bubbleUntil=performance.now()+BUBBLE_MS;
+}
+/* Danh sách người có thể nói chuyện: chỉ dựng lại khi có thay đổi để không đóng hộp chọn đang mở */
+let chatToSig="";
+function syncChatTo(){
+  const sel=$("chatTo"), seen=new Set(), list=[];
+  for(const o of peers.values()){ if(!o.tid || o.tid===tabId || seen.has(o.tid)) continue; seen.add(o.tid); list.push([o.tid,o.tag.textContent]); }
+  list.sort((a,b)=>a[1].localeCompare(b[1],"vi"));
+  const sig=JSON.stringify(list); if(sig===chatToSig) return; chatToSig=sig;
+  const cur=sel.value, curName=sel.selectedOptions[0]?sel.selectedOptions[0].textContent:"";
+  sel.innerHTML=""; sel.add(new Option("Nói với mọi người",""));
+  for(const [tid,name] of list) sel.add(new Option(name,tid));
+  if(cur && seen.has(cur)) sel.value=cur;
+  else if(cur){ sel.value=""; toast(`${curName} đã rời chùa, lời nhắn sẽ gửi cho mọi người.`); }
+  updateChatHint();
+}
+function updateChatHint(){
+  const sel=$("chatTo"), name=sel.value&&sel.selectedOptions[0]?sel.selectedOptions[0].textContent:"";
+  $("chatInput").placeholder = name ? `Nói với ${name}…` : "Nhắn với mọi người đang đi lễ…";
+}
+function chatTarget(){
+  const sel=$("chatTo");
+  return sel.value && sel.selectedOptions[0] ? {to:sel.value,toN:cleanName(sel.selectedOptions[0].textContent)} : {to:"",toN:""};
 }
 function placeBubble(holder,now,x,y,z){
   if(!holder.bubble) return;
@@ -1330,7 +1493,7 @@ function allMessages(){
     const tabs = d.tabs && typeof d.tabs==="object" ? d.tabs : {};
     for(const k of Object.keys(tabs)){
       const its = tabs[k] && Array.isArray(tabs[k].items) ? tabs[k].items : [];
-      for(const m of its) if(m && typeof m.text==="string" && typeof m.t==="number" && m.t>cutoff && typeof m.id==="string") out.push({id:m.id,t:m.t,text:m.text.slice(0,200),name:cleanName(m.name),owner:d.id,tab:k});
+      for(const m of its) if(m && typeof m.text==="string" && typeof m.t==="number" && m.t>cutoff && typeof m.id==="string") out.push({id:m.id,t:m.t,text:m.text.slice(0,200),name:cleanName(m.name),owner:d.id,tab:k,to:typeof m.to==="string"?m.to:"",toN:cleanName(m.toN)});
     }
   }
   for(const m of roomMsgs) out.push(m);
@@ -1349,8 +1512,9 @@ function renderChat(){
   for(const m of list){
     const d=new Date(m.t), day=isoOf(d);
     if(day!==lastDay){ lastDay=day; const sd=document.createElement("div"); sd.className="sys day"; sd.textContent = day===isoOf(new Date()) ? "Hôm nay" : `Ngày ${d.getDate()}/${d.getMonth()+1}`; log.appendChild(sd); }
-    const mine=isMine(m), w=document.createElement("div"); w.className="msg"+(mine?" me":"");
-    const who=document.createElement("div"); who.className="who"; who.textContent=`${mine?myName():(m.name||"Phật tử")} · ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    const mine=isMine(m), toMe=!mine&&m.to===tabId, w=document.createElement("div"); w.className="msg"+(mine?" me":"")+(toMe?" tome":"");
+    if(!mine){ w.dataset.tab=m.tab; w.title="Bấm để trả lời người này"; }
+    const who=document.createElement("div"); who.className="who"; who.textContent=`${mine?myName():(m.name||"Phật tử")}${m.toN?` → ${toMe?"Bạn":m.toN}`:""} · ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     const tx=document.createElement("div"); tx.className="txt"; tx.textContent=m.text;
     w.append(who,tx); log.appendChild(w);
   }
@@ -1359,7 +1523,7 @@ function renderChat(){
   for(const m of list){
     if(chatSeen.has(m.id)) continue; chatSeen.add(m.id);
     if(!chatPrimed || isMine(m)) continue;
-    for(const o of peers.values()) if(o.tid && o.tid===m.tab){ showBubble(o,m.text); break; }
+    for(const o of peers.values()) if(o.tid && o.tid===m.tab){ showBubble(o,m.text,m.toN,m.to===tabId); break; }
   }
   chatPrimed=true;
 }
@@ -1377,16 +1541,17 @@ async function writeMyChat(){
 async function sendChat(text){
   text=String(text).replace(/\s+/g," ").trim().slice(0,200); if(!text) return false;
   const t=Date.now(); if(t-lastChat<900) return false; lastChat=t;
-  showBubble(meChat,text);
+  const tgt=chatTarget();
+  showBubble(meChat,text,tgt.toN);
   const nm=myName()==="Bạn"?"":myName();
   if(db && uid && canWrite!==false){
-    myTabItems.push({id:rid(),t,text,name:nm}); while(myTabItems.length>40) myTabItems.shift();
+    myTabItems.push({id:rid(),t,text,name:nm,to:tgt.to,toN:tgt.toN}); while(myTabItems.length>40) myTabItems.shift();
     queue(async()=>{ try{ await writeMyChat(); }catch(e){ toast(e&&e.code==="quota_exceeded"?"Hội thoại đã đầy, chưa gửi được.":"Chưa gửi được lời nhắn, hãy thử lại."); } });
     return true;
   }
   // không có dữ liệu dùng chung: gửi tức thời qua room cho người đang có mặt
-  roomMsgs.push({id:rid(),t,text,name:nm,tab:tabId}); renderChat();
-  if(room && room.connected()){ try{ await room.emit("chat",{text,name:nm,tid:tabId}); }catch(e){ toast("Chế độ xem này chưa gửi được lời nhắn."); } }
+  roomMsgs.push({id:rid(),t,text,name:nm,tab:tabId,to:tgt.to,toN:tgt.toN}); renderChat();
+  if(room && room.connected()){ try{ await room.emit("chat",{text,name:nm,tid:tabId,to:tgt.to,toN:tgt.toN}); }catch(e){ toast("Chế độ xem này chưa gửi được lời nhắn."); } }
   else toast("Chưa kết nối với người khác, chỉ mình bạn thấy lời này.");
   return true;
 }
@@ -1399,6 +1564,13 @@ $("chatClear").addEventListener("click",()=>{
   queue(async()=>{ for(const id of ids){ try{ await db.doc("hoithoai/"+id).delete(); }catch(e){} } toast("Đã xóa hội thoại."); });
 });
 $("myName").value=tabName;
+$("chatTo").addEventListener("change",()=>{ updateChatHint(); $("chatInput").focus({preventScroll:true}); });
+$("chatLog").addEventListener("click",e=>{
+  const w=e.target.closest(".msg[data-tab]"); if(!w || String(getSelection())) return;
+  const sel=$("chatTo");
+  if([...sel.options].some(o=>o.value===w.dataset.tab)){ sel.value=w.dataset.tab; updateChatHint(); $("chatInput").focus({preventScroll:true}); }
+  else toast("Người này không còn trong chùa.");
+});
 document.querySelectorAll("[data-gender]").forEach(b=>{
   b.setAttribute("aria-pressed",String(b.dataset.gender===myGender));
   b.addEventListener("click",()=>{ setGender(b.dataset.gender); toast(b.dataset.gender==="f"?"Đã đổi sang nhân vật nữ":"Đã đổi sang nhân vật nam"); });
@@ -1436,11 +1608,13 @@ async function initRoom(){
     const text = m.data && typeof m.data.text==="string" ? m.data.text.replace(/\s+/g," ").trim().slice(0,200) : "";
     if(!text) return;
     const o=peers.get(m.peer);
-    roomMsgs.push({id:rid(),t:Date.now(),text,name:cleanName(m.data.name)||(o&&cleanName(o.pn))||"Phật tử",tab:typeof m.data.tid==="string"?m.data.tid:m.peer});
-    renderChat(); if(o) showBubble(o,text);
+    const to=typeof m.data.to==="string"?m.data.to:"", toN=cleanName(m.data.toN);
+    roomMsgs.push({id:rid(),t:Date.now(),text,name:cleanName(m.data.name)||(o&&cleanName(o.pn))||"Phật tử",tab:typeof m.data.tid==="string"?m.data.tid:m.peer,to,toN});
+    renderChat(); if(o) showBubble(o,text,toN,to===tabId);
   });
   room.on("bell",m=>{ if(!m.sameTab){ ringBell(true); toast("Có người vừa thỉnh chuông"); } });
   room.on("incense",m=>{ if(!m.sameTab) lightIncense(true); });
+  room.on("hallincense",m=>{ if(!m.sameTab) plantHallIncense(true); });
   setPresence(true);
 }
 
@@ -1459,6 +1633,7 @@ async function initData(){
       // Phiên admin đã hết nhưng còn lưu tên admin: quay lại màn hình vào chùa để nhập mật khẩu
       if(needsAdminLogin(tabName) && !isOwner){ try{ localStorage.removeItem(TAB_KEY); }catch(e){} location.reload(); return; }
       $("logoutBtn").hidden=!(isOwner && window.cdytAuth);
+      showAdminPanel();
     }
     try{ db=await C.use("db"); }catch(e){ db=null; }
   }
@@ -1542,6 +1717,34 @@ function setRegRole(){
   resetPeople();
 }
 setRegRole();
+/* Bảng điều khiển admin: nhớ trạng thái mở hay ẩn trên trình duyệt này */
+const ADMIN_KEY="cdyt-bang-dieu-khien";
+function setAdminOpen(open){
+  $("adminBody").hidden=!open;
+  $("adminToggle").setAttribute("aria-expanded",String(open));
+  $("adminToggle").textContent=open?"Ẩn bảng điều khiển":"Bảng điều khiển";
+}
+function updateAdminStats(){
+  if($("adminPanel").hidden) return;
+  const today=isoOf(new Date());
+  const regs=regDocs.flatMap(d=>Array.isArray(d.items)?d.items.map(it=>({...it,owner:d.id})):[]).filter(it=>it&&it.ngay>=today);
+  $("adStatPeople").textContent=`${room?room.peers().filter(p=>p.kind==="viewer").length:1} người trong chùa`;
+  $("adStatReg").textContent=`${regs.length} đăng ký, ${regs.reduce((s,it)=>s+peopleOf(it).count,0)} người đi lễ`;
+  $("adStatLan").textContent=`${allLanterns().length} hoa đăng`;
+}
+function showAdminPanel(){
+  if(!isOwner) return;
+  let saved=null; try{ saved=localStorage.getItem(ADMIN_KEY); }catch(e){}
+  $("adminPanel").hidden=false;
+  setAdminOpen(saved ? saved==="1" : innerWidth>=900);
+  updateAdminStats(); setInterval(updateAdminStats,2000);
+}
+$("adminToggle").addEventListener("click",()=>{
+  const open=$("adminBody").hidden; setAdminOpen(open);
+  try{ localStorage.setItem(ADMIN_KEY,open?"1":"0"); }catch(e){}
+});
+$("adRegJump").addEventListener("click",()=>$("regList").scrollIntoView({behavior:"smooth",block:"start"}));
+$("adLanJump").addEventListener("click",()=>$("lanList").scrollIntoView({behavior:"smooth",block:"start"}));
 $("addPerson").addEventListener("click",()=>{ const i=addPersonRow(); if(i) i.focus(); });
 $("people").addEventListener("keydown",e=>{
   if(e.key!=="Enter" || e.target.tagName!=="INPUT") return;

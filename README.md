@@ -1,6 +1,6 @@
 # Chùa Đồng Yên Tử
 
-Trang đi lễ chùa Đồng trên đỉnh Yên Tử trong không gian 3D: thắp hương, lễ Phật trước ban Tam Bảo, thỉnh chuông, thả hoa đăng, trò chuyện và đăng ký đi lễ mùng Một, ngày Rằm.
+Trang đi lễ chùa Đồng trên đỉnh Yên Tử trong không gian 3D: vái lạy, thắp hương và quỳ bái trong chánh điện (20 chỗ quỳ), thỉnh chuông, thả hoa đăng, trò chuyện bằng bong bóng lời thoại và đăng ký đi lễ mùng Một, ngày Rằm.
 
 ## Chạy trên GitHub Pages
 
