@@ -15,6 +15,10 @@ Thư viện 3D (three.js r128) được tải từ cdnjs.cloudflare.com.
 
 Mọi người vào trang cùng đi lễ trong **một ngôi chùa chung**, dùng Firebase (Realtime Database và đăng nhập ẩn danh). Người đi lễ không phải tạo tài khoản, chỉ cần nhập một tên đại diện và chọn giới tính khi vào. Tên không được kiểm tra trùng hay xác minh.
 
+Cảnh chùa chiếm toàn màn hình, mọi chức năng nằm ở thanh dọc bên phải. Chọn một người trong mục **Người đi lễ**, hoặc bấm vào tên trên đầu nhân vật, là mở trò chuyện với người đó.
+
+Khi đóng trang, trình duyệt quên tên, giới tính và phiên đăng nhập (kể cả admin); máy chủ xóa ngay vị trí và lời nhắn của người đó. Đăng ký đi lễ và hoa đăng vẫn được giữ. Tải lại trang cũng xóa lời nhắn của chính mình nhưng giữ tên.
+
 Khi đăng ký đi lễ, chỉ chủ trang được thêm nhiều người. Người khác đăng ký một người bằng tên đại diện của mình; trang chỉ tính và hiển thị một người cho các đăng ký này.
 
 - Họ tên, lời nguyện, hoa đăng và lời nhắn hiện công khai cho tất cả người vào trang.
