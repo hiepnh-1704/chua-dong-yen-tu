@@ -1,0 +1,47 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "config": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "col": {
+      "dangky": {
+        ".read": "auth != null",
+        "$uid": {
+          ".write": "auth != null && (auth.uid === $uid || auth.uid === root.child('config/owner').val())",
+          ".validate": "newData.hasChildren(['json']) && newData.child('json').isString() && newData.child('json').val().length <= 40000"
+        }
+      },
+      "hoadang": {
+        ".read": "auth != null",
+        "$uid": {
+          ".write": "auth != null && (auth.uid === $uid || auth.uid === root.child('config/owner').val())",
+          ".validate": "newData.hasChildren(['json']) && newData.child('json').isString() && newData.child('json').val().length <= 2000"
+        }
+      },
+      "hoithoai": {
+        ".read": "auth != null",
+        "$uid": {
+          ".write": "auth != null && (auth.uid === $uid || auth.uid === root.child('config/owner').val())",
+          ".validate": "newData.hasChildren(['json']) && newData.child('json').isString() && newData.child('json').val().length <= 120000"
+        }
+      }
+    },
+    "presence": {
+      ".read": "auth != null",
+      "$peer": {
+        ".write": "auth != null && (!data.exists() || data.child('by').val() === auth.uid)",
+        ".validate": "newData.hasChildren(['by', 'json']) && newData.child('by').val() === auth.uid && newData.child('json').isString() && newData.child('json').val().length <= 400"
+      }
+    },
+    "events": {
+      ".read": "auth != null",
+      "$peer": {
+        ".write": "auth != null && (!data.exists() || data.child('by').val() === auth.uid)",
+        ".validate": "newData.hasChildren(['by', 'n', 'json']) && newData.child('by').val() === auth.uid && newData.child('n').isNumber() && newData.child('json').isString() && newData.child('json').val().length <= 500"
+      }
+    }
+  }
+}

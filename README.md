@@ -13,11 +13,19 @@ Thư viện 3D (three.js r128) được tải từ cdnjs.cloudflare.com.
 
 ## Về dữ liệu
 
-Khi chạy ngoài Claude, trang dùng **chế độ độc lập**:
+Mọi người vào trang cùng đi lễ trong **một ngôi chùa chung**, dùng Firebase (Realtime Database và đăng nhập ẩn danh). Người đi lễ không phải tạo tài khoản.
 
-- Đăng ký, hoa đăng và hội thoại được lưu trong `localStorage` của trình duyệt người dùng. Không gửi đi đâu.
-- Các tab trong cùng một trình duyệt nhìn thấy nhau (BroadcastChannel). Người ở máy khác thì chưa thấy nhau.
+- Họ tên, lời nguyện, hoa đăng và lời nhắn hiện công khai cho tất cả người vào trang.
+- Luật truy cập nằm trong `database.rules.json`. Khi sửa file này, cần dán lại vào tab **Rules** của Realtime Database trên Firebase Console.
+- Cấu hình `FIREBASE_CONFIG` trong `index.html` là thông tin công khai của Firebase, không phải mật khẩu.
+- Nếu để trống `FIREBASE_CONFIG`, trang về chế độ độc lập: dữ liệu chỉ lưu trong trình duyệt và người ở máy khác không thấy nhau.
 
-Để nhiều người ở nhiều nơi cùng đi lễ và đọc chung danh sách đăng ký, cần thêm một dịch vụ dữ liệu thời gian thực (ví dụ Firebase hoặc Supabase), có xác thực người dùng, phân quyền và kiểm duyệt nội dung.
+### Quyền chủ trang
+
+1. Mở trang với đuôi `#ma-cua-toi` rồi tải lại, sao chép mã hiện ở phần ghi chú cuối trang.
+2. Trong tab **Data** của Realtime Database, tạo mục `config` → `owner` với giá trị là mã đó.
+3. Tải lại trang. Chủ trang có thể gỡ đăng ký và xóa hội thoại. Nếu xóa dữ liệu trình duyệt, mã sẽ đổi và cần làm lại các bước này.
+
+Trang chưa có kiểm duyệt tự động. Nội dung xấu cần được xóa thủ công trên trang hoặc trong Firebase Console.
 
 Khung cảnh mô phỏng theo cảm hứng chùa Đồng Yên Tử, mang tính tượng trưng, không phải bản sao kiến trúc thật.
