@@ -24,7 +24,7 @@ Khi đăng ký đi lễ, chỉ chủ trang được thêm nhiều người. Ngư
 
 ### Quyền chủ trang
 
-Admin vào trang bằng tên **Nguyen Hai Hiep** (viết có dấu hay không đều được) và mật khẩu riêng. Người khác không chọn được tên này nếu không có mật khẩu. Admin được thêm nhiều người khi đăng ký, gỡ đăng ký và xóa hội thoại, trên bất kỳ máy nào.
+Admin vào trang bằng tên **Nguyen Hai Hiep** (viết có dấu hay không đều được) và mật khẩu riêng. Nếu trình duyệt đã lưu tên khác, nhập tên admin vào ô **Đổi tên** để mở màn hình nhập mật khẩu. Người khác không chọn được tên này nếu không có mật khẩu. Admin được thêm nhiều người khi đăng ký, gỡ đăng ký và xóa hội thoại, trên bất kỳ máy nào.
 
 1. Trong **Authentication → Sign-in method**, bật **Email/Password**.
 2. Trong **Authentication → Users**, thêm người dùng có email `admin@chua-dong-yen-tu.invalid` và một mật khẩu mạnh.

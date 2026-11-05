@@ -1405,7 +1405,12 @@ document.querySelectorAll("[data-gender]").forEach(b=>{
 });
 $("myNameBtn").addEventListener("click",()=>{
   if(!cleanName($("myName").value)){ $("myName").value=tabName; toast("Tên đại diện không được để trống."); return; }
-  if(needsAdminLogin($("myName").value) && !isOwner){ $("myName").value=tabName; toast("Tên này dành riêng cho admin, hãy chọn tên khác."); return; }
+  // Nhập tên admin khi chưa đăng nhập: về màn hình vào chùa để nhập mật khẩu, không đổi tên ngay
+  if(needsAdminLogin($("myName").value) && !isOwner){
+    try{ sessionStorage.setItem("cdyt-ten-admin",cleanName($("myName").value)); localStorage.removeItem(TAB_KEY); location.reload(); }
+    catch(e){ $("myName").value=tabName; toast("Không mở được màn hình đăng nhập admin."); }
+    return;
+  }
   setTabName($("myName").value); toast(`Bạn đang đi lễ với tên ${myName()}`);
 });
 $("myName").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); $("myNameBtn").click(); } });
@@ -1631,7 +1636,9 @@ if(hasProfile) enterTemple();
 else{
   let gateGender="";
   const togglePw=()=>{ const on=needsAdminLogin($("gateName").value); document.querySelectorAll(".gatePw").forEach(el=>{ el.hidden=!on; }); if(!on) $("gatePw").value=""; };
-  $("gate").hidden=false; $("gateName").value=tabName; $("gateName").focus(); togglePw();
+  let adminPrefill=""; try{ adminPrefill=sessionStorage.getItem("cdyt-ten-admin")||""; sessionStorage.removeItem("cdyt-ten-admin"); }catch(e){}
+  $("gate").hidden=false; $("gateName").value=adminPrefill||tabName; togglePw();
+  (adminPrefill?$("gatePw"):$("gateName")).focus();
   $("gateName").addEventListener("input",togglePw);
   document.querySelectorAll("[data-gate-gender]").forEach(b=>b.addEventListener("click",()=>{
     gateGender=b.dataset.gateGender;
