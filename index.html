@@ -1619,6 +1619,16 @@ function setAllowAdminTouch(on){
 }
 /* Người có chữ "Linh" trong tên (không phân biệt hoa thường, dấu) và admin ôm, hôn nhau không cần hỏi */
 function isLinhName(n){ return String(n||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[đĐ]/g,"d").toLowerCase().includes("linh"); }
+/* Tự tải bản mới: GitHub Pages giữ trang cũ trong bộ nhớ đệm tới 10 phút */
+const BUILD="2026-11-09-linh2";
+setInterval(async()=>{
+  if(me.touch || incomingReq || !$("gate").hidden) return;
+  try{
+    const t=await (await fetch(location.pathname+"?v="+Date.now(),{cache:"no-store"})).text();
+    const m=t.match(/const BUILD="([^"]+)"/);
+    if(m && m[1]!==BUILD) location.reload();
+  }catch(e){}
+},60000);
 let touchNoteTimer=null;
 function showTouchNote(text){
   $("touchNoteText").textContent=text; $("touchNote").hidden=false; syncAdminTouchUI();
@@ -1630,6 +1640,12 @@ function requestTouch(kind){
   if(touchReq && now<touchReq.until){ toast("Đang chờ người kia trả lời."); return; }
   if(now-lastReqAt<5000){ toast("Xin đợi một chút rồi mời lại."); return; }
   lastReqAt=now; const name=nearPeer.tag.textContent;
+  /* Người có chữ Linh trong tên: không gửi lời hỏi, ôm, hôn ngay */
+  if(isLinhName(nearPeer.pn) || isLinhName(name)){
+    const to=nearPeer.tid;
+    roomSend("touchnow",{to,from:tabId,kind,n:myName()});
+    startTouch(kind,to,true); return;
+  }
   touchReq={kind,to:nearPeer.tid,name,until:now+16000};
   const instant = isOwner || isLinhName(myName()) || isLinhName(nearPeer.pn) || isLinhName(name);
   roomSend("touchreq",{to:nearPeer.tid,from:tabId,kind,n:myName(),now:instant?1:0});
@@ -1958,6 +1974,10 @@ async function initRoom(){
     }
     incomingReq={kind:d.kind,from:d.from,name,timer:setTimeout(()=>answerTouch(false),15000)};
     $("touchTitle").textContent=`${name} muốn ${TOUCH_WORD[d.kind]} bạn`; $("touchDlg").hidden=false; $("touchYes").focus({preventScroll:true}); });
+  room.on("touchnow",m=>{ const d=m.data||{}; if(d.to!==tabId || (d.kind!=="hug"&&d.kind!=="kiss") || me.touch) return;
+    if(!iAmLinh()) return;
+    if(incomingReq){ clearTimeout(incomingReq.timer); incomingReq=null; $("touchDlg").hidden=true; }
+    startTouch(d.kind,d.from,false); showTouchNote(`${cleanName(d.n)||"Một người"} vừa ${TOUCH_WORD[d.kind]} bạn`); });
   room.on("touchok",m=>{ const d=m.data||{}; if(d.to!==tabId || !touchReq || touchReq.to!==d.from || touchReq.kind!==d.kind) return;
     const ok=performance.now()<touchReq.until; touchReq=null; if(ok) startTouch(d.kind,d.from,true); });
   room.on("touchno",m=>{ const d=m.data||{}; if(d.to!==tabId || !touchReq || touchReq.to!==d.from) return;
