@@ -1610,7 +1610,7 @@ function placeFx(holder,kind,x,y,z){
 /* Admin ôm, hôn không cần hỏi; người nhận tắt được bất cứ lúc nào, khi đó admin phải hỏi như mọi người */
 const ADMIN_TOUCH_KEY="cdyt-chan-admin";
 function iAmLinh(){ try{ return isLinhName(tabName); }catch(e){ return false; } }
-/* Người có chữ "Linh" trong tên: admin luôn ôm, hôn được ngay, không có nút từ chối */
+/* Người có chữ "Linh" trong tên: ai ôm, hôn cũng diễn ra ngay, không có nút từ chối */
 function allowAdminTouch(){ if(iAmLinh()) return true; try{ return sessionStorage.getItem(ADMIN_TOUCH_KEY)!=="1"; }catch(e){ return true; } }
 function syncAdminTouchUI(){ const r=document.getElementById("allowAdminTouchRow"); if(r) r.hidden=iAmLinh(); const b=document.getElementById("touchNoteStop"); if(b) b.hidden=iAmLinh(); }
 function setAllowAdminTouch(on){
@@ -1631,7 +1631,7 @@ function requestTouch(kind){
   if(now-lastReqAt<5000){ toast("Xin đợi một chút rồi mời lại."); return; }
   lastReqAt=now; const name=nearPeer.tag.textContent;
   touchReq={kind,to:nearPeer.tid,name,until:now+16000};
-  const instant = isOwner || isLinhName(myName());
+  const instant = isOwner || isLinhName(myName()) || isLinhName(nearPeer.pn) || isLinhName(name);
   roomSend("touchreq",{to:nearPeer.tid,from:tabId,kind,n:myName(),now:instant?1:0});
   if(!instant) toast(`Đã mời ${name} ${TOUCH_WORD[kind]}, đang chờ đồng ý…`);
 }
@@ -1943,6 +1943,11 @@ async function initRoom(){
     if(me.touch || incomingReq || !$("lanDlg").hidden){ roomSend("touchno",{to:d.from,from:tabId,kind:d.kind,busy:1}); return; }
     const name=cleanName(d.n)||"Một người";
     const sender=peerByTid(d.from), fromAdmin=!!d.now && !!sender && !!ownerUid && sender.by===ownerUid;
+    /* Người có chữ Linh trong tên: ai ôm, hôn cũng diễn ra ngay, không hỏi */
+    if(iAmLinh() && !fromAdmin){
+      roomSend("touchok",{to:d.from,from:tabId,kind:d.kind}); startTouch(d.kind,d.from,false);
+      showTouchNote(`${name} vừa ${TOUCH_WORD[d.kind]} bạn`); return;
+    }
     if(fromAdmin && allowAdminTouch()){
       roomSend("touchok",{to:d.from,from:tabId,kind:d.kind}); startTouch(d.kind,d.from,false);
       showTouchNote(`${name} (admin) vừa ${TOUCH_WORD[d.kind]} bạn`); return;
@@ -2318,7 +2323,7 @@ else{
         const code=ex&&ex.code||"";
         err.textContent = code==="auth/too-many-requests" ? "Thử sai quá nhiều lần, hãy đợi một lúc rồi thử lại."
           : /wrong-password|invalid-credential|invalid-login|user-not-found/.test(code) ? "Sai mật khẩu."
-          : "Chưa đăng nhập được, hãy thử lại.";
+          : `Chưa đăng nhập được (${code||(ex&&ex.message)||"lỗi lạ"}), hãy thử lại.`;
         $("gateBtn").disabled=false; $("gatePw").value=""; $("gatePw").focus(); return;
       }
       $("gateBtn").disabled=false; $("gatePw").value="";
