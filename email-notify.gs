@@ -53,6 +53,14 @@ function doPost(e) {
   }
 }
 
+/**
+ * Chạy hàm này một lần trong trình soạn Apps Script (chọn capQuyen rồi bấm Chạy)
+ * để Google hỏi và cấp quyền gửi email. Hàm chỉ đọc số email còn được gửi hôm nay, không gửi gì.
+ */
+function capQuyen() {
+  Logger.log('Còn gửi được ' + MailApp.getRemainingDailyQuota() + ' email hôm nay.');
+}
+
 function reply(text) {
   return ContentService.createTextOutput(text).setMimeType(ContentService.MimeType.TEXT);
 }
