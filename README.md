@@ -29,7 +29,7 @@ Trang gửi tín hiệu tới một Google Apps Script (`email-notify.gs`) chạ
 
 ### Ôm, hôn và va chạm
 
-Nhân vật không đi xuyên qua nhau. Khi đứng gần một người, nút **Ôm** và **Hôn** hiện ra; người kia phải bấm **Đồng ý** thì mới diễn ra. Riêng admin ôm, hôn được ngay không cần hỏi; người nhận thấy dòng báo kèm nút **Không muốn nữa**, hoặc bỏ chọn ô cho phép trong mục **Đi lễ**, khi đó admin phải hỏi như mọi người. Người có chữ **Linh** trong tên (viết hoa hay thường, có dấu hay không đều được, ví dụ Mỹ Linh, linh xinh) ôm, hôn admin cũng không cần hỏi; với người khác vẫn phải hỏi như thường.
+Nhân vật không đi xuyên qua nhau. Khi đứng gần một người, nút **Ôm** và **Hôn** hiện ra; người kia phải bấm **Đồng ý** thì mới diễn ra. Riêng admin ôm, hôn được ngay không cần hỏi; người nhận thấy dòng báo kèm nút **Không muốn nữa**, hoặc bỏ chọn ô cho phép trong mục **Đi lễ**, khi đó admin phải hỏi như mọi người. Người có chữ **Linh** trong tên (viết hoa hay thường, có dấu hay không đều được, ví dụ Mỹ Linh, linh xinh) ôm, hôn admin cũng không cần hỏi; với người khác vẫn phải hỏi như thường. Với người có chữ Linh trong tên, admin luôn ôm, hôn được ngay: không có nút **Không muốn nữa** và ô cho phép được ẩn.
 
 Khi đăng ký đi lễ, chỉ chủ trang được thêm nhiều người. Người khác đăng ký một người bằng tên đại diện của mình; trang chỉ tính và hiển thị một người cho các đăng ký này.
 

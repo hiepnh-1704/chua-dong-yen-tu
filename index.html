@@ -272,7 +272,7 @@ footer { color: var(--muted); font-size: 12px; border-top: 1px solid var(--line)
     <div class="namerow"><label for="myName">Tên đại diện của bạn</label><input type="text" id="myName" maxlength="40" placeholder="Nhập tên hiển thị" list="myNames"><datalist id="myNames"></datalist><button type="button" id="myNameBtn">Đổi tên</button>
       <div class="seg" role="group" aria-label="Nhân vật"><button type="button" data-gender="m" aria-pressed="true">Nam</button><button type="button" data-gender="f" aria-pressed="false">Nữ</button></div>
       <div class="seg" id="outfitRow" role="group" aria-label="Trang phục nữ" hidden><button type="button" data-outfit="dress" aria-pressed="true">Váy voan</button><button type="button" data-outfit="robe" aria-pressed="false">Áo tràng</button></div></div>
-    <label class="chk"><input type="checkbox" id="allowAdminTouch" checked> Cho phép admin ôm, hôn tôi không cần hỏi</label>
+    <label class="chk" id="allowAdminTouchRow"><input type="checkbox" id="allowAdminTouch" checked> Cho phép admin ôm, hôn tôi không cần hỏi</label>
     <div class="hint">Bấm vào khung cảnh rồi đi bằng <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> hoặc phím mũi tên, kéo chuột để xoay góc nhìn, bấm xuống đất để đi tới đó, <kbd>E</kbd> để làm lễ, <kbd>Enter</kbd> để trò chuyện. Trong chùa Đồng: <kbd>E</kbd> vái lạy, <kbd>R</kbd> thắp hương, <kbd>Q</kbd> quỳ bái. Trên điện thoại dùng cần điều khiển ở góc dưới.</div>
     <p class="note">Khi bạn đóng trang, trình duyệt quên tên của bạn và bạn rời khỏi chùa ngay. Lần sau vào, bạn nhập tên mới.</p>
     <footer>Khung cảnh được dựng mô phỏng theo cảm hứng chùa Đồng trên đỉnh Yên Tử, mang tính tượng trưng, không phải bản sao kiến trúc thật; trang dùng để thực hành vibe coding. Mỗi người chỉ sửa được đăng ký và hoa đăng của mình; chủ trang có thể gỡ nội dung không phù hợp.</footer>
@@ -1386,7 +1386,7 @@ $("actHug").addEventListener("click",()=>requestTouch("hug"));
 $("actKiss").addEventListener("click",()=>requestTouch("kiss"));
 $("touchYes").addEventListener("click",()=>answerTouch(true));
 $("touchNoteStop").addEventListener("click",()=>{ setAllowAdminTouch(false); $("touchNote").hidden=true; toast("Từ giờ admin phải hỏi trước khi ôm, hôn bạn."); vp.focus({preventScroll:true}); });
-$("allowAdminTouch").checked=allowAdminTouch();
+$("allowAdminTouch").checked=allowAdminTouch(); syncAdminTouchUI();
 $("allowAdminTouch").addEventListener("change",e=>setAllowAdminTouch(e.target.checked));
 $("touchNo").addEventListener("click",()=>answerTouch(false));
 
@@ -1609,7 +1609,10 @@ function placeFx(holder,kind,x,y,z){
 }
 /* Admin ôm, hôn không cần hỏi; người nhận tắt được bất cứ lúc nào, khi đó admin phải hỏi như mọi người */
 const ADMIN_TOUCH_KEY="cdyt-chan-admin";
-function allowAdminTouch(){ try{ return sessionStorage.getItem(ADMIN_TOUCH_KEY)!=="1"; }catch(e){ return true; } }
+function iAmLinh(){ try{ return isLinhName(tabName); }catch(e){ return false; } }
+/* Người có chữ "Linh" trong tên: admin luôn ôm, hôn được ngay, không có nút từ chối */
+function allowAdminTouch(){ if(iAmLinh()) return true; try{ return sessionStorage.getItem(ADMIN_TOUCH_KEY)!=="1"; }catch(e){ return true; } }
+function syncAdminTouchUI(){ const r=document.getElementById("allowAdminTouchRow"); if(r) r.hidden=iAmLinh(); const b=document.getElementById("touchNoteStop"); if(b) b.hidden=iAmLinh(); }
 function setAllowAdminTouch(on){
   try{ if(on) sessionStorage.removeItem(ADMIN_TOUCH_KEY); else sessionStorage.setItem(ADMIN_TOUCH_KEY,"1"); }catch(e){}
   const c=document.getElementById("allowAdminTouch"); if(c) c.checked=on;
@@ -1618,7 +1621,7 @@ function setAllowAdminTouch(on){
 function isLinhName(n){ return String(n||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[đĐ]/g,"d").toLowerCase().includes("linh"); }
 let touchNoteTimer=null;
 function showTouchNote(text){
-  $("touchNoteText").textContent=text; $("touchNote").hidden=false;
+  $("touchNoteText").textContent=text; $("touchNote").hidden=false; syncAdminTouchUI();
   clearTimeout(touchNoteTimer); touchNoteTimer=setTimeout(()=>{ $("touchNote").hidden=true; },9000);
 }
 function requestTouch(kind){
@@ -1667,13 +1670,13 @@ const isAdminName = s => String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").r
 const needsAdminLogin = s => !!window.cdytAuth && isAdminName(s);
 /* Tên đại diện nhập khi vào chùa, nhớ trên trình duyệt này để lần sau không phải nhập lại */
 const TAB_KEY="an-nhien-ten-dai-dien";
-let tabName=""; try{ tabName=cleanName(sessionStorage.getItem(TAB_KEY)||""); }catch(e){}
+let tabName=""; try{ tabName=cleanName(sessionStorage.getItem(TAB_KEY)||""); }catch(e){} syncAdminTouchUI();
 const myName = () => tabName || regNameOf(uid) || myProfileName || "Bạn";
 function setTabName(n){
   tabName=cleanName(n);
   try{ sessionStorage.setItem(TAB_KEY,tabName); }catch(e){}
   if($("myName").value!==tabName) $("myName").value=tabName;
-  refreshNames();
+  refreshNames(); syncAdminTouchUI();
 }
 function refreshNames(){
   meTag.textContent=myName();
