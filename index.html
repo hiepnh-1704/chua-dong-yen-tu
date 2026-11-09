@@ -178,6 +178,10 @@ textarea { min-height: 64px; resize: vertical }
 .rep .rh { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums }
 .rep .rh b { color: var(--paper); font-size: 13px }
 .rep .k { border: 1px solid var(--gold-soft); color: var(--gold); border-radius: 99px; padding: 0 6px; font-size: 11px }
+.touchnote { position: absolute; left: 50%; top: 58px; transform: translateX(-50%); z-index: 5; display: flex; align-items: center; gap: 10px; max-width: calc(100% - var(--rail) - 24px); background: var(--hud); border: 1px solid var(--gold-soft); border-radius: 6px; padding: 6px 8px 6px 12px; font-size: 13.5px; color: var(--paper); backdrop-filter: blur(4px) }
+.touchnote button { padding: 4px 10px; font-size: 12.5px; flex: none }
+.chk { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--ink); text-transform: none; letter-spacing: 0 }
+.chk input { width: 16px; height: 16px; accent-color: var(--gold) }
 .fx { position: absolute; transform: translate(-50%, -100%); font-size: 24px; line-height: 1; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.5)) }
 .adminstat { display: grid; gap: 2px; font-size: 12.5px; color: var(--muted); padding-bottom: 8px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums }
 footer { color: var(--muted); font-size: 12px; border-top: 1px solid var(--line); padding-top: 10px }
@@ -212,6 +216,7 @@ footer { color: var(--muted); font-size: 12px; border-top: 1px solid var(--line)
     <button class="act" id="actHug" hidden>Ôm (H)</button>
     <button class="act" id="actKiss" hidden>Hôn (K)</button>
   </div>
+  <div class="touchnote" id="touchNote" role="status" hidden><span id="touchNoteText"></span><button type="button" id="touchNoteStop">Không muốn nữa</button></div>
   <div class="dlg" id="touchDlg" hidden>
     <div class="card" role="alertdialog" aria-labelledby="touchTitle">
       <h3 id="touchTitle"></h3>
@@ -267,6 +272,7 @@ footer { color: var(--muted); font-size: 12px; border-top: 1px solid var(--line)
     <div class="namerow"><label for="myName">Tên đại diện của bạn</label><input type="text" id="myName" maxlength="40" placeholder="Nhập tên hiển thị" list="myNames"><datalist id="myNames"></datalist><button type="button" id="myNameBtn">Đổi tên</button>
       <div class="seg" role="group" aria-label="Nhân vật"><button type="button" data-gender="m" aria-pressed="true">Nam</button><button type="button" data-gender="f" aria-pressed="false">Nữ</button></div>
       <div class="seg" id="outfitRow" role="group" aria-label="Trang phục nữ" hidden><button type="button" data-outfit="dress" aria-pressed="true">Váy voan</button><button type="button" data-outfit="robe" aria-pressed="false">Áo tràng</button></div></div>
+    <label class="chk"><input type="checkbox" id="allowAdminTouch" checked> Cho phép admin ôm, hôn tôi không cần hỏi</label>
     <div class="hint">Bấm vào khung cảnh rồi đi bằng <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> hoặc phím mũi tên, kéo chuột để xoay góc nhìn, bấm xuống đất để đi tới đó, <kbd>E</kbd> để làm lễ, <kbd>Enter</kbd> để trò chuyện. Trong chùa Đồng: <kbd>E</kbd> vái lạy, <kbd>R</kbd> thắp hương, <kbd>Q</kbd> quỳ bái. Trên điện thoại dùng cần điều khiển ở góc dưới.</div>
     <p class="note">Khi bạn đóng trang, trình duyệt quên tên của bạn và bạn rời khỏi chùa ngay. Lần sau vào, bạn nhập tên mới.</p>
     <footer>Khung cảnh được dựng mô phỏng theo cảm hứng chùa Đồng trên đỉnh Yên Tử, mang tính tượng trưng, không phải bản sao kiến trúc thật; trang dùng để thực hành vibe coding. Mỗi người chỉ sửa được đăng ký và hoa đăng của mình; chủ trang có thể gỡ nội dung không phù hợp.</footer>
@@ -1379,6 +1385,9 @@ $("actKneel").addEventListener("click",()=>toggleKneel());
 $("actHug").addEventListener("click",()=>requestTouch("hug"));
 $("actKiss").addEventListener("click",()=>requestTouch("kiss"));
 $("touchYes").addEventListener("click",()=>answerTouch(true));
+$("touchNoteStop").addEventListener("click",()=>{ setAllowAdminTouch(false); $("touchNote").hidden=true; toast("Từ giờ admin phải hỏi trước khi ôm, hôn bạn."); vp.focus({preventScroll:true}); });
+$("allowAdminTouch").checked=allowAdminTouch();
+$("allowAdminTouch").addEventListener("change",e=>setAllowAdminTouch(e.target.checked));
 $("touchNo").addEventListener("click",()=>answerTouch(false));
 
 /* =========================================================
@@ -1598,6 +1607,18 @@ function placeFx(holder,kind,x,y,z){
   if(!holder.fx){ holder.fx=document.createElement("div"); holder.fx.className="fx"; holder.fx.setAttribute("aria-hidden","true"); labelsEl.appendChild(holder.fx); }
   holder.fx.textContent=TOUCH_FX[kind]||""; placeTag(holder.fx,x,y,z);
 }
+/* Admin ôm, hôn không cần hỏi; người nhận tắt được bất cứ lúc nào, khi đó admin phải hỏi như mọi người */
+const ADMIN_TOUCH_KEY="cdyt-chan-admin";
+function allowAdminTouch(){ try{ return sessionStorage.getItem(ADMIN_TOUCH_KEY)!=="1"; }catch(e){ return true; } }
+function setAllowAdminTouch(on){
+  try{ if(on) sessionStorage.removeItem(ADMIN_TOUCH_KEY); else sessionStorage.setItem(ADMIN_TOUCH_KEY,"1"); }catch(e){}
+  const c=document.getElementById("allowAdminTouch"); if(c) c.checked=on;
+}
+let touchNoteTimer=null;
+function showTouchNote(text){
+  $("touchNoteText").textContent=text; $("touchNote").hidden=false;
+  clearTimeout(touchNoteTimer); touchNoteTimer=setTimeout(()=>{ $("touchNote").hidden=true; },9000);
+}
 function requestTouch(kind){
   if(!nearPeer || me.touch) return;
   const now=performance.now();
@@ -1605,8 +1626,8 @@ function requestTouch(kind){
   if(now-lastReqAt<5000){ toast("Xin đợi một chút rồi mời lại."); return; }
   lastReqAt=now; const name=nearPeer.tag.textContent;
   touchReq={kind,to:nearPeer.tid,name,until:now+16000};
-  roomSend("touchreq",{to:nearPeer.tid,from:tabId,kind,n:myName()});
-  toast(`Đã mời ${name} ${TOUCH_WORD[kind]}, đang chờ đồng ý…`);
+  roomSend("touchreq",{to:nearPeer.tid,from:tabId,kind,n:myName(),now:isOwner?1:0});
+  if(!isOwner) toast(`Đã mời ${name} ${TOUCH_WORD[kind]}, đang chờ đồng ý…`);
 }
 function answerTouch(yes){
   const r=incomingReq; if(!r) return;
@@ -1915,6 +1936,11 @@ async function initRoom(){
   room.on("touchreq",m=>{ const d=m.data||{}; if(d.to!==tabId || (d.kind!=="hug"&&d.kind!=="kiss")) return;
     if(me.touch || incomingReq || !$("lanDlg").hidden){ roomSend("touchno",{to:d.from,from:tabId,kind:d.kind,busy:1}); return; }
     const name=cleanName(d.n)||"Một người";
+    const sender=peerByTid(d.from), fromAdmin=!!d.now && !!sender && !!ownerUid && sender.by===ownerUid;
+    if(fromAdmin && allowAdminTouch()){
+      roomSend("touchok",{to:d.from,from:tabId,kind:d.kind}); startTouch(d.kind,d.from,false);
+      showTouchNote(`${name} (admin) vừa ${TOUCH_WORD[d.kind]} bạn`); return;
+    }
     incomingReq={kind:d.kind,from:d.from,name,timer:setTimeout(()=>answerTouch(false),15000)};
     $("touchTitle").textContent=`${name} muốn ${TOUCH_WORD[d.kind]} bạn`; $("touchDlg").hidden=false; $("touchYes").focus({preventScroll:true}); });
   room.on("touchok",m=>{ const d=m.data||{}; if(d.to!==tabId || !touchReq || touchReq.to!==d.from || touchReq.kind!==d.kind) return;
