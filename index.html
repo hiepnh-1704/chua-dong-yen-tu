@@ -1614,6 +1614,8 @@ function setAllowAdminTouch(on){
   try{ if(on) sessionStorage.removeItem(ADMIN_TOUCH_KEY); else sessionStorage.setItem(ADMIN_TOUCH_KEY,"1"); }catch(e){}
   const c=document.getElementById("allowAdminTouch"); if(c) c.checked=on;
 }
+/* Người có chữ "Linh" trong tên (không phân biệt hoa thường, dấu) và admin ôm, hôn nhau không cần hỏi */
+function isLinhName(n){ return String(n||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[đĐ]/g,"d").toLowerCase().includes("linh"); }
 let touchNoteTimer=null;
 function showTouchNote(text){
   $("touchNoteText").textContent=text; $("touchNote").hidden=false;
@@ -1626,8 +1628,9 @@ function requestTouch(kind){
   if(now-lastReqAt<5000){ toast("Xin đợi một chút rồi mời lại."); return; }
   lastReqAt=now; const name=nearPeer.tag.textContent;
   touchReq={kind,to:nearPeer.tid,name,until:now+16000};
-  roomSend("touchreq",{to:nearPeer.tid,from:tabId,kind,n:myName(),now:isOwner?1:0});
-  if(!isOwner) toast(`Đã mời ${name} ${TOUCH_WORD[kind]}, đang chờ đồng ý…`);
+  const instant = isOwner || isLinhName(myName());
+  roomSend("touchreq",{to:nearPeer.tid,from:tabId,kind,n:myName(),now:instant?1:0});
+  if(!instant) toast(`Đã mời ${name} ${TOUCH_WORD[kind]}, đang chờ đồng ý…`);
 }
 function answerTouch(yes){
   const r=incomingReq; if(!r) return;
@@ -1940,6 +1943,10 @@ async function initRoom(){
     if(fromAdmin && allowAdminTouch()){
       roomSend("touchok",{to:d.from,from:tabId,kind:d.kind}); startTouch(d.kind,d.from,false);
       showTouchNote(`${name} (admin) vừa ${TOUCH_WORD[d.kind]} bạn`); return;
+    }
+    if(isOwner && !!d.now && !!sender && (isLinhName(d.n) || isLinhName(sender.pn))){
+      roomSend("touchok",{to:d.from,from:tabId,kind:d.kind}); startTouch(d.kind,d.from,false);
+      showTouchNote(`${name} vừa ${TOUCH_WORD[d.kind]} bạn`); return;
     }
     incomingReq={kind:d.kind,from:d.from,name,timer:setTimeout(()=>answerTouch(false),15000)};
     $("touchTitle").textContent=`${name} muốn ${TOUCH_WORD[d.kind]} bạn`; $("touchDlg").hidden=false; $("touchYes").focus({preventScroll:true}); });
