@@ -29,11 +29,19 @@
         }
       }
     },
+    "logs": {
+      ".read": "auth != null && auth.uid === root.child('config/owner').val()",
+      ".write": "auth != null && auth.uid === root.child('config/owner').val()",
+      "$id": {
+        ".write": "auth != null && !data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['by', 'kind', 'name', 'text', 't']) && newData.child('by').val() === auth.uid && newData.child('kind').isString() && newData.child('kind').val().length <= 16 && newData.child('name').isString() && newData.child('name').val().length <= 40 && newData.child('text').isString() && newData.child('text').val().length <= 400 && newData.child('t').val() === now"
+      }
+    },
     "presence": {
       ".read": "auth != null",
       "$peer": {
-        ".write": "auth != null && (!data.exists() || data.child('by').val() === auth.uid)",
-        ".validate": "newData.hasChildren(['by', 'json']) && newData.child('by').val() === auth.uid && newData.child('json').isString() && newData.child('json').val().length <= 400"
+        ".write": "auth != null && (!data.exists() || data.child('by').val() === auth.uid || (!newData.exists() && (!data.child('t').exists() || data.child('t').val() < now - 180000)))",
+        ".validate": "newData.hasChildren(['by', 'json']) && newData.child('by').val() === auth.uid && newData.child('json').isString() && newData.child('json').val().length <= 400 && (!newData.child('t').exists() || newData.child('t').val() === now)"
       }
     },
     "events": {

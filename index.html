@@ -171,6 +171,12 @@ textarea { min-height: 64px; resize: vertical }
 .dlg.gate { position: fixed; z-index: 50; background: rgba(10,7,5,.92) }
 .gate input { font-size: 16px }
 .gate .gerr { min-height: 18px }
+.replist { display: flex; flex-direction: column; gap: 6px }
+.rep { padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; background: rgba(21,16,13,.45); font-size: 13px; display: grid; gap: 2px; overflow-wrap: anywhere }
+.rep .rh { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums }
+.rep .rh b { color: var(--paper); font-size: 13px }
+.rep .k { border: 1px solid var(--gold-soft); color: var(--gold); border-radius: 99px; padding: 0 6px; font-size: 11px }
+.fx { position: absolute; transform: translate(-50%, -100%); font-size: 24px; line-height: 1; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.5)) }
 .adminstat { display: grid; gap: 2px; font-size: 12.5px; color: var(--muted); padding-bottom: 8px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums }
 footer { color: var(--muted); font-size: 12px; border-top: 1px solid var(--line); padding-top: 10px }
 </style>
@@ -179,7 +185,7 @@ footer { color: var(--muted); font-size: 12px; border-top: 1px solid var(--line)
 <div class="dlg gate" id="gate" hidden>
   <form class="card" id="gateForm" autocomplete="off" novalidate>
     <h3>Vào chùa Đồng</h3>
-    <p>Chỉ cần nhập một tên và chọn giới tính, không cần mật khẩu. Tên này là tên đại diện của bạn và hiện công khai với mọi người trong chùa.</p>
+    <p>Chỉ cần nhập một tên và chọn giới tính, không cần mật khẩu. Tên này là tên đại diện của bạn và hiện công khai với mọi người trong chùa. Thời gian vào chùa, lời nhắn, lời nguyện và các việc lễ của bạn được ghi lại để admin xem.</p>
     <label for="gateName">Tên đại diện</label>
     <input type="text" id="gateName" maxlength="40" placeholder="Nhập tên của bạn">
     <label for="gatePw" class="gatePw" hidden>Mật khẩu admin</label>
@@ -199,13 +205,22 @@ footer { color: var(--muted); font-size: 12px; border-top: 1px solid var(--line)
     <button class="primary act" id="actBtn" hidden></button>
     <button class="act" id="actIncense" hidden>Thắp hương (R)</button>
     <button class="act" id="actKneel" hidden>Quỳ bái (Q)</button>
+    <button class="act" id="actHug" hidden>Ôm (H)</button>
+    <button class="act" id="actKiss" hidden>Hôn (K)</button>
+  </div>
+  <div class="dlg" id="touchDlg" hidden>
+    <div class="card" role="alertdialog" aria-labelledby="touchTitle">
+      <h3 id="touchTitle"></h3>
+      <p>Bạn có đồng ý không? Lời mời tự hủy sau 15 giây.</p>
+      <div class="formrow"><button class="primary" type="button" id="touchYes">Đồng ý</button><button type="button" id="touchNo">Từ chối</button></div>
+    </div>
   </div>
   <div class="joy" id="joy"><div class="knob" id="knob"></div></div>
   <div class="toast" id="toast" hidden></div>
   <div class="dlg" id="lanDlg" hidden>
     <form class="card" id="lanForm">
       <h3>Thả hoa đăng</h3>
-      <p>Lời nguyện sẽ hiện trên hồ sen cho mọi người cùng thấy.</p>
+      <p>Hoa đăng sẽ trôi trên hồ sen cho mọi người cùng thấy. Lời nguyện chỉ admin đọc được.</p>
       <label for="lanText">Lời nguyện</label>
       <textarea id="lanText" maxlength="160" placeholder="Nguyện cho gia đình bình an…" required></textarea>
       <div class="formrow"><button class="primary" type="submit">Thả xuống hồ</button><button type="button" id="lanCancel">Để sau</button></div>
@@ -223,6 +238,7 @@ footer { color: var(--muted); font-size: 12px; border-top: 1px solid var(--line)
     <button type="button" data-tab="reg" aria-pressed="false">Đăng ký</button>
     <button type="button" data-tab="lan" aria-pressed="false">Hoa đăng</button>
     <button type="button" data-tab="admin" id="tabAdmin" aria-pressed="false" hidden>Quản trị</button>
+    <button type="button" data-tab="report" id="tabReport" aria-pressed="false" hidden>Báo cáo</button>
   </div>
 </nav>
 
@@ -285,7 +301,7 @@ footer { color: var(--muted); font-size: 12px; border-top: 1px solid var(--line)
       </div>
       <div class="fld"><label for="rDay">Ngày đi lễ</label><select id="rDay"></select></div>
       <div class="fld"><label for="rTime">Buổi</label><select id="rTime"><option>Sáng</option><option>Chiều</option><option>Tối</option></select></div>
-      <div class="fld full"><label for="rWish">Lời nguyện (không bắt buộc)</label><textarea id="rWish" maxlength="240" placeholder="Cầu bình an cho gia đình…"></textarea></div>
+      <div class="fld full"><label for="rWish">Lời nguyện (không bắt buộc, chỉ admin đọc)</label><textarea id="rWish" maxlength="240" placeholder="Cầu bình an cho gia đình…"></textarea></div>
       <div class="formrow full"><button class="primary" type="submit" id="regBtn">Đăng ký</button><span class="status" id="regStatus"></span></div>
     </form>
     <div id="regList"><div class="empty">Đang tải danh sách đăng ký…</div></div>
@@ -307,8 +323,33 @@ footer { color: var(--muted); font-size: 12px; border-top: 1px solid var(--line)
       <button type="button" id="addPerson" hidden>+ Thêm người</button>
       <button type="button" id="adRegJump">Danh sách đăng ký</button>
       <button type="button" id="adLanJump">Hoa đăng trên hồ sen</button>
+      <button type="button" id="adReport">Báo cáo người vào chùa</button>
+      <button type="button" id="adLanWish">Xem hoa đăng cầu gì</button>
       <button type="button" id="chatClear" hidden>Xóa hội thoại</button>
       <button type="button" id="logoutBtn" hidden>Đăng xuất admin</button>
+    </div>
+  </section>
+
+  <section class="pane" data-pane="report" data-title="Báo cáo" hidden>
+    <p class="sub">Chỉ admin xem được. Ghi lại người vào chùa, thời gian vào, lời nhắn, lời nguyện khi đăng ký, hoa đăng cầu gì và các việc lễ.</p>
+    <div class="formrow">
+      <label for="repKind" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Loại báo cáo</label>
+      <select id="repKind">
+        <option value="">Tất cả</option>
+        <option value="enter">Vào chùa</option>
+        <option value="chat">Trò chuyện</option>
+        <option value="lantern">Hoa đăng cầu gì</option>
+        <option value="reg">Đăng ký và lời nguyện</option>
+        <option value="pray">Việc lễ</option>
+        <option value="touch">Ôm, hôn</option>
+      </select>
+      <button type="button" id="repRefresh">Tải lại</button>
+    </div>
+    <div class="adminstat" id="repSum" aria-live="polite"></div>
+    <div class="replist" id="repList"><div class="empty">Mở mục này để tải báo cáo.</div></div>
+    <div class="vstack">
+      <button type="button" id="repCsv">Tải báo cáo về máy (CSV)</button>
+      <button type="button" id="repClear">Xóa toàn bộ báo cáo</button>
     </div>
   </section>
 </aside>
@@ -323,6 +364,9 @@ footer { color: var(--muted); font-size: 12px; border-top: 1px solid var(--line)
    Cấu hình web của Firebase là thông tin công khai; quyền đọc/ghi do
    database.rules.json quyết định. Để trống thì trang về chế độ độc lập.
    ========================================================= */
+/* Địa chỉ web app Google Apps Script (email-notify.gs) để gửi email cho admin khi có người vào chùa.
+   Để trống thì không gửi email. Email nhận là tài khoản Google đã triển khai script, không ghi trong mã này. */
+const NOTIFY_URL = "";
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyDLfk_bAJ7HJDpxuGZiJj8cpJC_yeMy0ps",
   authDomain: "chua-dong-yen-tu.firebaseapp.com",
@@ -387,14 +431,21 @@ if(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL && !(window.claude && w
     let myPres={}, others=new Map(), online=false, evCount=0, evPrimed=false, evSeen={}, lastSend=0, sendTimer=null;
     const peerObj=(id,v,p)=>({peer:id,by:v.by,isMe:v.by===uid,sameTab:false,kind:"viewer",guest:false,presence:p,updatedAt:Date.now()});
     const list=()=>Object.freeze([{peer:myPeer,by:uid,isMe:true,sameTab:true,kind:"viewer",guest:false,presence:myPres,updatedAt:Date.now()},...others.values()]);
-    const sendPres=()=>{ lastSend=Date.now(); sendTimer=null; return online?myPresRef.set({by:uid,json:JSON.stringify(myPres)}).catch(()=>{}):Promise.resolve(); };
+    const sendPres=()=>{ lastSend=Date.now(); sendTimer=null; return online?myPresRef.set({by:uid,json:JSON.stringify(myPres),t:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{}):Promise.resolve(); };
+    /* Nhịp báo còn ở trong chùa mỗi phút; người im quá 3 phút (trình duyệt treo, mất điện) bị coi là đã rời và được dọn khỏi chùa */
+    const STALE_MS=180000; let serverOffset=0;
+    root.child(".info/serverTimeOffset").on("value",s=>{ serverOffset=Number(s.val())||0; });
+    setInterval(()=>{ if(online) sendPres(); },60000);
     root.child(".info/connected").on("value",s=>{ online=s.val()===true; if(!online) return;
       // Rời trang là rời chùa: máy chủ tự xóa vị trí và lời nhắn của người này, kể cả khi mất mạng hay trình duyệt tắt đột ngột
       myPresRef.onDisconnect().remove(); myEvRef.onDisconnect().remove();
       root.child("col/hoithoai/"+uid).onDisconnect().remove();
       sendPres(); });
     presRef.on("value",s=>{ const v=s.val()||{}, next=new Map(), joined=[], updated=[], left=[];
-      for(const id of Object.keys(v)){ if(id===myPeer) continue; let p={}; try{ p=JSON.parse(v[id].json)||{}; }catch(e){}
+      for(const id of Object.keys(v)){ if(id===myPeer) continue;
+        const age=v[id].t ? Date.now()+serverOffset-v[id].t : Infinity;
+        if(age>STALE_MS){ presRef.child(id).remove().catch(()=>{}); continue; }
+        let p={}; try{ p=JSON.parse(v[id].json)||{}; }catch(e){}
         const o=peerObj(id,v[id],p); next.set(id,o); (others.has(id)?updated:joined).push(o); }
       for(const [id,o] of others) if(!next.has(id)) left.push(o);
       others=next; const peers=list();
@@ -422,9 +473,17 @@ if(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL && !(window.claude && w
     me:async()=>({id:s.uid,name:"",avatarUrl:"",color:"#b8914a",email:null,isOwner:s.isOwner,canEdit:true}),
     profiles:async ids=>{ const r={}; [].concat(ids).forEach(i=>{ r[i]={id:i,name:"",avatarUrl:"",color:"#b8914a",email:null,isMe:i===s.uid,guest:false}; }); return r; } });
 
-  let dbApi=null, roomApi=null, userApi=null;
+  /* Nhật ký cho báo cáo: ai cũng chỉ thêm được dòng mới, chỉ admin đọc và xóa (theo database.rules.json) */
+  const makeLog=(root,uid)=>({
+    add:(kind,name,text)=>root.child("logs").push().set({by:uid,kind,name,text,t:firebase.database.ServerValue.TIMESTAMP}),
+    recent:async n=>{ const s=await root.child("logs").orderByKey().limitToLast(n).once("value"); const out=[]; s.forEach(c=>{ out.push({id:c.key,...c.val()}); }); return out; },
+    clear:()=>root.child("logs").remove()
+  });
+
+  let dbApi=null, roomApi=null, userApi=null, logApi=null;
   window.claude={ use: async name=>{
     try{ const s=await connect();
+      if(name==="log") return logApi||(logApi=makeLog(s.root,s.uid));
       if(name==="db") return dbApi||(dbApi=makeDb(s.root));
       if(name==="room") return roomApi||(roomApi=makeRoom(s.root,s.uid));
       if(name==="user") return userApi||(userApi=makeUser(s));
@@ -967,6 +1026,22 @@ if(ready3d){
       ell(k%2?mat.leaf2:mat.leaf,scene,x+(c[0]+lean*2)*s,c[1]*s,z+c[2]*s,c[3]*s,c[4]*s,c[5]*s,SPH_LO));
     obstaclesCirc.push([x,z,0.6*s]); };
   [[-9,24],[9,24],[-26,20],[26,22],[-25,-14,1.3],[25,-14,1.2],[-12,-33],[12,-33],[26,-30],[-28,-28],[20,26],[-20,-6,1.6],[28,4],[-30,6]].forEach(t=>pine(t[0],t[1],t[2]||1));
+  // Hàng tùng quanh sân chùa
+  [[-17,-9,1.1],[17,-9,1.1],[-17,18],[17,17],[-13,27,0.9],[13,27,0.9],[-24,10],[24,13],[-11.5,-12,0.85],[11.5,-12,0.85],[-17,-1,0.9],[17,-1,0.9]].forEach(t=>pine(t[0],t[1],t[2]||1));
+  // Chậu hoa men lam quanh sân và dọc lối đi
+  { const potGeo=new THREE.CylinderGeometry(0.42,0.3,0.55,14), rimGeo=new THREE.TorusGeometry(0.42,0.05,6,18), soilGeo=new THREE.CircleGeometry(0.38,14);
+    const glazes=[M(0x2f5f9e),M(0x8a4b2a),M(0x3f7a6a),M(0xc9b48a)], rim=M(0xe8e0cf), soil=M(0x3a2a1c);
+    const blooms=[M(0xe8738f),M(0xf2c14e),M(0xd84a3a),M(0xf4f0e6),M(0xb06ad0)], leafM=mat.leaf;
+    const pot=(x,z,i)=>{
+      const p=cyl(0.42,0.3,0.55,glazes[i%glazes.length],x,0.28,z,14); p.geometry=potGeo;
+      const r=new THREE.Mesh(rimGeo,rim); r.rotation.x=Math.PI/2; r.position.set(x,0.55,z); add(r);
+      const s=new THREE.Mesh(soilGeo,soil); s.rotation.x=-Math.PI/2; s.position.set(x,0.52,z); add(s);
+      for(let k=0;k<5;k++){ const a=k/5*Math.PI*2+i; ell(leafM,scene,x+Math.cos(a)*0.2,0.68,z+Math.sin(a)*0.2,0.16,0.09,0.16,SPH_LO); }
+      for(let k=0;k<7;k++){ const a=k*2.39+i*0.7, rr=0.08+(k%3)*0.08; ell(blooms[(i+k)%blooms.length],scene,x+Math.cos(a)*rr,0.78+(k%2)*0.08,z+Math.sin(a)*rr,0.09,0.08,0.09,SPH_LO); }
+      obstaclesCirc.push([x,z,0.45]); };
+    let i=0;
+    for(const z of [20,12,4,-4]) for(const x of [-3.2,3.2]) pot(x,z,i++);
+    for(const z of [26,18,-2,-10]) for(const x of [-8.5,8.5]) pot(x,z,i++); }
   // Rừng trúc (Trúc Lâm Yên Tử)
   const bamboo=(x,z)=>{ for(let i=0;i<11;i++){ const a=i*2.4, r=0.3+((i*7)%5)*0.2, h=5+((i*13)%7)*0.55, bx=x+Math.cos(a)*r, bz=z+Math.sin(a)*r;
       const c=cyl(0.055,0.07,h,mat.bamboo,bx,h/2,bz,6); c.rotation.z=((i*5)%7-3)*0.02;
@@ -1053,22 +1128,23 @@ function makeAvatar(ci,gender){
   W.scene.add(g); return g;
 }
 // Tư thế: vung tay khi đi, chắp tay vái khi lễ; quỳ thì hạ thấp người và cúi lạy chậm
-function poseAvatar(av,bowAmt,walking,t,kneel){
+function poseAvatar(av,bowAmt,walking,t,kneel,touch){
   const u=av.userData; if(!u||!u.body) return;
   const prostrate = kneel ? (reduceMotion ? 0.25 : Math.pow(Math.max(0,Math.sin(t/1200)),2)) : 0;
   u.body.position.y = kneel ? -0.24 : 0;
-  u.body.rotation.x = kneel ? prostrate*1.05 : bowAmt*0.55;
+  u.body.rotation.x = kneel ? prostrate*1.05 : touch==="kiss" ? 0.22 : bowAmt*0.55;
   if(u.stick) u.stick.visible=!!u.incense;
   for(const a of u.arms){
     const sx=a.userData.side;
-    if(bowAmt>0.02 || u.pray){ a.rotation.set(-1.25,0,-sx*0.62); }
+    if(touch==="hug"){ a.rotation.set(-1.45,0,-sx*0.28); }
+    else if(bowAmt>0.02 || u.pray){ a.rotation.set(-1.25,0,-sx*0.62); }
     else if(walking){ a.rotation.set(Math.sin(t/140)*0.5*sx,0,sx*0.12); }
     else a.rotation.set(0,0,sx*0.12);
   }
 }
 const GKEY="an-nhien-gioi-tinh";
 let myGender="m"; try{ const s=sessionStorage.getItem(GKEY); if(s==="f"||s==="m") myGender=s; }catch(e){}
-const me={ x:0, z:37, ry:Math.PI, bow:0, moving:false, ci:Math.floor(Math.random()*4), y:0, seat:-1, kneeling:false, holdT:0 };
+const me={ x:0, z:37, ry:Math.PI, bow:0, moving:false, ci:Math.floor(Math.random()*4), y:0, seat:-1, kneeling:false, holdT:0, touch:null };
 let pendingAct=null; // việc sẽ làm khi đi tới nơi: "kneel" hoặc "incense"
 let meAvatar=null, camYaw=0, camPitch=0.42, target=null;
 const keys=new Set(), joyVec={x:0,y:0};
@@ -1096,10 +1172,20 @@ function blocked(x,z){
   if(x>-9 && x<9 && z>-27 && z<-13 && !(Math.abs(x)<3.5 || z<-13.6 || me.y>0.9)) return true;
   return false;
 }
+/* Hai người không đi xuyên qua nhau: chặn bước làm khoảng cách nhỏ hơn mức tối thiểu, nhưng vẫn cho bước ra nếu lỡ đứng chồng */
+const PERSON_GAP=0.65;
+function peerBlock(x,z){
+  for(const p of peers.values()){
+    if(me.touch && p.tid===me.touch.with) continue;
+    const nd=Math.hypot(x-p.x,z-p.z); if(nd>=PERSON_GAP) continue;
+    if(nd<Math.hypot(me.x-p.x,me.z-p.z)) return true;
+  }
+  return false;
+}
 function tryMove(dx,dz){
   const nx=me.x+dx, nz=me.z+dz; let moved=false;
-  if(!blocked(nx,me.z)){ me.x=nx; moved=true; }
-  if(!blocked(me.x,nz)){ me.z=nz; moved=true; }
+  if(!blocked(nx,me.z) && !peerBlock(nx,me.z)){ me.x=nx; moved=true; }
+  if(!blocked(me.x,nz) && !peerBlock(me.x,nz)){ me.z=nz; moved=true; }
   return moved;
 }
 
@@ -1120,6 +1206,9 @@ function zoneAt(){
 function updateActs(){
   const inHall = !!curZone && curZone.id==="hall";
   $("actIncense").hidden=!inHall; $("actKneel").hidden=!inHall;
+  const canTouch=!!nearPeer && !me.touch;
+  $("actHug").hidden=!canTouch; $("actKiss").hidden=!canTouch;
+  if(canTouch){ const nm=nearPeer.tag.textContent; $("actHug").textContent=`Ôm ${nm} (H)`; $("actKiss").textContent=`Hôn ${nm} (K)`; }
   $("actKneel").textContent = (me.kneeling||pendingAct==="kneel") ? "Đứng dậy (Q)" : "Quỳ bái (Q)";
 }
 function updateZoneHud(){
@@ -1139,12 +1228,13 @@ function updateZoneHud(){
 /* Bàn phím */
 const typing = () => { const a=document.activeElement; return a && (a.tagName==="INPUT"||a.tagName==="TEXTAREA"||a.tagName==="SELECT"); };
 addEventListener("keydown",e=>{
-  if(typing() || !$("lanDlg").hidden || !$("gate").hidden) return;
+  if(typing() || !$("lanDlg").hidden || !$("gate").hidden || !$("touchDlg").hidden) return;
   const k=e.key.toLowerCase();
   if(["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(k)){
     if(document.activeElement===vp || vp.matches(":hover")){ keys.add(k); target=null; e.preventDefault(); }
   }
   if(k==="e" && curZone && (document.activeElement===vp || vp.matches(":hover"))){ doAction(curZone.id); e.preventDefault(); }
+  if((k==="h"||k==="k") && nearPeer && (document.activeElement===vp || vp.matches(":hover"))){ requestTouch(k==="h"?"hug":"kiss"); e.preventDefault(); }
   if((k==="q"||k==="r") && curZone && curZone.id==="hall" && (document.activeElement===vp || vp.matches(":hover"))){ if(k==="q") toggleKneel(); else offerIncense(); e.preventDefault(); }
   if((k==="enter"||k==="t") && document.activeElement===vp){ keys.clear(); openTab("chat"); $("chatInput").focus({preventScroll:true}); e.preventDefault(); }
 });
@@ -1198,6 +1288,10 @@ document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=
 $("actBtn").addEventListener("click",()=>{ if(curZone) doAction(curZone.id); });
 $("actIncense").addEventListener("click",()=>offerIncense());
 $("actKneel").addEventListener("click",()=>toggleKneel());
+$("actHug").addEventListener("click",()=>requestTouch("hug"));
+$("actKiss").addEventListener("click",()=>requestTouch("kiss"));
+$("touchYes").addEventListener("click",()=>answerTouch(true));
+$("touchNo").addEventListener("click",()=>answerTouch(false));
 
 /* =========================================================
    5. Nghi lễ trong khuôn viên
@@ -1220,12 +1314,12 @@ function ringBell(fromOther){
   if(!fromOther) toast("Boong… Tiếng chuông vang khắp khuôn viên.");
 }
 function doAction(id){
-  if(id==="bell"){ ringBell(false); roomEmit("bell"); }
-  else if(id==="luhuong"){ lightIncense(false); roomEmit("incense"); }
+  if(id==="bell"){ ringBell(false); roomEmit("bell"); logEvent("pray","Thỉnh chuông"); }
+  else if(id==="luhuong"){ lightIncense(false); roomEmit("incense"); logEvent("pray","Thắp hương ở lư hương giữa sân"); }
   else if(id==="hall"){
     if(me.bow>0 || me.holdT>0) return;
     standUp(); target=null;
-    me.bow=3; me.ry=Math.PI; setPresence(true); toast("Nam mô Bổn Sư Thích Ca Mâu Ni Phật",4200);
+    me.bow=3; me.ry=Math.PI; setPresence(true); toast("Nam mô Bổn Sư Thích Ca Mâu Ni Phật",4200); logEvent("pray","Vái lạy trước ban Tam Bảo");
     [0,1000,2000].forEach(ms=>setTimeout(()=>bowlBell(),ms)); // ba tiếng chuông gia trì theo ba vái
   }
   else if(id==="pond"){ openLantern(); }
@@ -1261,11 +1355,11 @@ function finishPending(){
   const act=pendingAct; pendingAct=null;
   if(act==="kneel" && me.seat>=0){
     const s=KNEEL_SPOTS[me.seat];
-    if(Math.hypot(s.x-me.x,s.z-me.z)<0.7){ me.x=s.x; me.z=s.z; me.ry=Math.PI; me.kneeling=true; toast(`Quỳ bái tại chỗ số ${me.seat+1}. Đi hoặc bấm Đứng dậy khi xong.`,3600); bowlBell(); }
+    if(Math.hypot(s.x-me.x,s.z-me.z)<0.7){ me.x=s.x; me.z=s.z; me.ry=Math.PI; me.kneeling=true; toast(`Quỳ bái tại chỗ số ${me.seat+1}. Đi hoặc bấm Đứng dậy khi xong.`,3600); bowlBell(); logEvent("pray",`Quỳ bái tại chỗ số ${me.seat+1}`); }
     else me.seat=-1;
     setPresence(true); updateActs();
   } else if(act==="incense" && me.z<-20 && Math.abs(me.x)<2.4){
-    me.ry=Math.PI; me.holdT=2.4; setPresence(true); toast("Xin dâng ba nén hương lên ban Tam Bảo",2600);
+    me.ry=Math.PI; me.holdT=2.4; setPresence(true); toast("Xin dâng ba nén hương lên ban Tam Bảo",2600); logEvent("pray","Thắp hương trong chùa Đồng");
   }
 }
 /* Thêm ba nén hương vào bát hương trên hương án */
@@ -1321,7 +1415,7 @@ function frame(now){
     if(d<0.3) target=null; else { mx=dx/d; mz=dz/d; }
   }
   me.moving=false;
-  if((mx||mz) && me.bow<=0 && me.holdT<=0){
+  if((mx||mz) && me.bow<=0 && me.holdT<=0 && !me.touch){
     if(me.kneeling) standUp();
     const sp=6*dt;
     if(tryMove(mx*sp,mz*sp)){ me.moving=true; me.ry=Math.atan2(mx,mz); } else target=null;
@@ -1337,7 +1431,7 @@ function frame(now){
   // vái ba vái trong 3 giây, chắp tay suốt lúc lễ
   meAvatar.userData.pray = me.bow>0 || me.kneeling || me.holdT>0;
   meAvatar.userData.incense = me.holdT>0;
-  poseAvatar(meAvatar, me.bow>0 ? Math.max(0,Math.sin((3-me.bow)/3*Math.PI*3)) : 0, me.moving, now, me.kneeling);
+  poseAvatar(meAvatar, me.bow>0 ? Math.max(0,Math.sin((3-me.bow)/3*Math.PI*3)) : 0, me.moving, now, me.kneeling, me.touch&&me.touch.kind);
   // Camera
   const inHall = me.x>-8 && me.x<8 && me.z<-13;
   const dist = inHall ? Math.min(camDistUser,6.2) : camDistUser;
@@ -1379,12 +1473,17 @@ function frame(now){
     const pw=Math.hypot(p.tx-p.x,p.tz-p.z)>0.05;
     p.g.userData.pray=p.bowing||p.kneeling||p.holding;
     p.g.userData.incense=!!p.holding;
-    poseAvatar(p.g, p.bowing ? Math.max(0,Math.sin(now/333)) : 0, pw, now, !!p.kneeling);
+    poseAvatar(p.g, p.bowing ? Math.max(0,Math.sin(now/333)) : 0, pw, now, !!p.kneeling, p.touch);
     placeTag(p.tag,p.x,floorY(p.x,p.z)+1.72,p.z);
     placeBubble(p,now,p.x,floorY(p.x,p.z)+2.12,p.z);
+    placeFx(p,p.touch,p.x,floorY(p.x,p.z)+1.95,p.z);
   }
   placeTag(meTag,me.x,me.y+1.72,me.z);
   placeBubble(meChat,now,me.x,me.y+2.12,me.z);
+  placeFx(meChat,me.touch&&me.touch.kind,me.x,me.y+1.95,me.z);
+  if(me.touch){ const tp=peerByTid(me.touch.with); if(tp) me.ry=Math.atan2(tp.x-me.x,tp.z-me.z);
+    if(!tp || now>me.touch.until){ me.touch=null; setPresence(true); updateActs(); } }
+  if(now-lastNearCheck>250){ lastNearCheck=now; const np=findNearPeer(); if(np!==nearPeer){ nearPeer=np; updateActs(); } }
   updateZoneHud();
   // Gửi vị trí cho người khác
   if(now-lastPres>120){ lastPres=now; setPresence(false); }
@@ -1399,10 +1498,45 @@ if(ready3d) requestAnimationFrame(frame);
    ========================================================= */
 let room=null, user=null, lastSent="";
 const C=window.claude;
+async function roomSend(topic,data){ if(!room) return; try{ await room.emit(topic,data); }catch(e){} }
+/* Ôm, hôn: chỉ diễn ra khi người kia bấm Đồng ý */
+let nearPeer=null, lastNearCheck=0, touchReq=null, incomingReq=null, lastReqAt=0;
+const TOUCH_WORD={hug:"ôm",kiss:"hôn"}, TOUCH_FX={hug:"🤗",kiss:"💕"};
+function peerByTid(tid){ for(const o of peers.values()) if(o.tid===tid) return o; return null; }
+function findNearPeer(){ let best=null, bd=1.8; for(const o of peers.values()){ if(!o.tid || o.tid===tabId) continue; const d=Math.hypot(o.x-me.x,o.z-me.z); if(d<bd){ bd=d; best=o; } } return best; }
+function placeFx(holder,kind,x,y,z){
+  if(!kind){ if(holder.fx) holder.fx.style.display="none"; return; }
+  if(!holder.fx){ holder.fx=document.createElement("div"); holder.fx.className="fx"; holder.fx.setAttribute("aria-hidden","true"); labelsEl.appendChild(holder.fx); }
+  holder.fx.textContent=TOUCH_FX[kind]||""; placeTag(holder.fx,x,y,z);
+}
+function requestTouch(kind){
+  if(!nearPeer || me.touch) return;
+  const now=performance.now();
+  if(touchReq && now<touchReq.until){ toast("Đang chờ người kia trả lời."); return; }
+  if(now-lastReqAt<5000){ toast("Xin đợi một chút rồi mời lại."); return; }
+  lastReqAt=now; const name=nearPeer.tag.textContent;
+  touchReq={kind,to:nearPeer.tid,name,until:now+16000};
+  roomSend("touchreq",{to:nearPeer.tid,from:tabId,kind,n:myName()});
+  toast(`Đã mời ${name} ${TOUCH_WORD[kind]}, đang chờ đồng ý…`);
+}
+function answerTouch(yes){
+  const r=incomingReq; if(!r) return;
+  clearTimeout(r.timer); incomingReq=null; $("touchDlg").hidden=true; vp.focus({preventScroll:true});
+  roomSend(yes?"touchok":"touchno",{to:r.from,from:tabId,kind:r.kind});
+  if(yes) startTouch(r.kind,r.from,false);
+}
+function startTouch(kind,partnerTid,mover){
+  const p=peerByTid(partnerTid); if(!p){ toast("Người kia đã rời đi."); return; }
+  standUp(); target=null; me.bow=0;
+  if(mover){ const dx=me.x-p.x, dz=me.z-p.z, d=Math.hypot(dx,dz)||1; me.x=p.x+dx/d*0.62; me.z=p.z+dz/d*0.62; }
+  me.touch={kind,with:partnerTid,until:performance.now()+3500};
+  setPresence(true); updateActs();
+  logEvent("touch",`${kind==="kiss"?"Hôn":"Ôm"} ${p.tag.textContent}`);
+}
 async function roomEmit(topic){ if(!room) return; try{ await room.emit(topic,{t:Date.now()}); }catch(e){} }
 function setPresence(force){
   if(!room) return;
-  const p={x:Math.round(me.x*10)/10,z:Math.round(me.z*10)/10,r:Math.round(me.ry*100)/100,c:me.ci,g:myGender,tid:tabId,b:me.bow>0?1:0,s:me.seat,k:me.kneeling?1:0,i:me.holdT>0?1:0,n:myName()==="Bạn"?"":myName()};
+  const p={x:Math.round(me.x*10)/10,z:Math.round(me.z*10)/10,r:Math.round(me.ry*100)/100,c:me.ci,g:myGender,tid:tabId,b:me.bow>0?1:0,s:me.seat,k:me.kneeling?1:0,i:me.holdT>0?1:0,a:me.touch?me.touch.kind:"",w:me.touch?me.touch.with:"",n:myName()==="Bạn"?"":myName()};
   const s=JSON.stringify(p); if(s===lastSent && !force) return; lastSent=s;
   room.presence(p).catch(()=>{});
 }
@@ -1460,7 +1594,7 @@ async function renderPeers(list){
       o={g:makeAvatar(Number(pr.c)||0,pr.g==="f"?"f":"m"),tag,x:pr.x,z:pr.z,ry:pr.r||0,by:p.by}; peers.set(p.peer,o); }
     const wantG=pr.g==="f"?"f":"m";
     if(o.g.userData.gender!==wantG){ W.scene.remove(o.g); o.g=makeAvatar(Number(pr.c)||0,wantG); }
-    o.tx=Math.max(-40,Math.min(40,pr.x)); o.tz=Math.max(-40,Math.min(45,pr.z)); o.try=Number(pr.r)||0; o.bowing=!!pr.b; o.kneeling=!!pr.k; o.holding=!!pr.i; o.by=p.by; o.isMe=p.isMe; o.pn=pr.n; o.tid=typeof pr.tid==="string"?pr.tid:"";
+    o.tx=Math.max(-40,Math.min(40,pr.x)); o.tz=Math.max(-40,Math.min(45,pr.z)); o.try=Number(pr.r)||0; o.bowing=!!pr.b; o.kneeling=!!pr.k; o.holding=!!pr.i; o.touch=(pr.a==="hug"||pr.a==="kiss")?pr.a:""; o.by=p.by; o.isMe=p.isMe; o.pn=pr.n; o.tid=typeof pr.tid==="string"?pr.tid:"";
   }
   for(const [k,o] of peers) if(!live.has(k)){ W.scene.remove(o.g); o.tag.remove(); if(o.bubble) o.bubble.remove(); peers.delete(k); }
   for(const o of peers.values()) o.tag.textContent = await nameOf(o.by,o.pn,o.isMe);
@@ -1526,6 +1660,7 @@ function openTab(id){
   curTab=id; $("side").hidden=false;
   document.querySelectorAll(".pane").forEach(p=>{ const on=p.dataset.pane===id; p.hidden=!on; if(on) $("sideTitle").textContent=p.dataset.title; });
   document.querySelectorAll("[data-tab]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.tab===id)));
+  if(id==="report") loadReport();
   if(id==="chat"){ chatUnread=0; updateChatBadge(); const log=$("chatLog"); log.scrollTop=log.scrollHeight; }
 }
 function closeSide(){
@@ -1611,6 +1746,7 @@ async function sendChat(text){
   text=String(text).replace(/\s+/g," ").trim().slice(0,200); if(!text) return false;
   const t=Date.now(); if(t-lastChat<900) return false; lastChat=t;
   const tgt=chatTarget();
+  logEvent("chat",tgt.toN?`→ ${tgt.toN}: ${text}`:text);
   showBubble(meChat,text,tgt.toN);
   const nm=myName()==="Bạn"?"":myName();
   if(db && uid && canWrite!==false){
@@ -1684,6 +1820,15 @@ async function initRoom(){
   room.on("bell",m=>{ if(!m.sameTab){ ringBell(true); toast("Có người vừa thỉnh chuông"); } });
   room.on("incense",m=>{ if(!m.sameTab) lightIncense(true); });
   room.on("hallincense",m=>{ if(!m.sameTab) plantHallIncense(true); });
+  room.on("touchreq",m=>{ const d=m.data||{}; if(d.to!==tabId || (d.kind!=="hug"&&d.kind!=="kiss")) return;
+    if(me.touch || incomingReq || !$("lanDlg").hidden){ roomSend("touchno",{to:d.from,from:tabId,kind:d.kind,busy:1}); return; }
+    const name=cleanName(d.n)||"Một người";
+    incomingReq={kind:d.kind,from:d.from,name,timer:setTimeout(()=>answerTouch(false),15000)};
+    $("touchTitle").textContent=`${name} muốn ${TOUCH_WORD[d.kind]} bạn`; $("touchDlg").hidden=false; $("touchYes").focus({preventScroll:true}); });
+  room.on("touchok",m=>{ const d=m.data||{}; if(d.to!==tabId || !touchReq || touchReq.to!==d.from || touchReq.kind!==d.kind) return;
+    const ok=performance.now()<touchReq.until; touchReq=null; if(ok) startTouch(d.kind,d.from,true); });
+  room.on("touchno",m=>{ const d=m.data||{}; if(d.to!==tabId || !touchReq || touchReq.to!==d.from) return;
+    toast(d.busy?`${touchReq.name} đang bận, thử lại sau nhé.`:`${touchReq.name} chưa muốn ${TOUCH_WORD[touchReq.kind]} lúc này.`); touchReq=null; });
   setPresence(true);
 }
 
@@ -1695,6 +1840,22 @@ let regDocs=[], lanDocs=[], regLoaded=false, lanLoaded=false, writing=Promise.re
 const queue = fn => (writing = writing.then(fn,fn));
 
 function setNote(t){ $("dataNote").textContent=t; }
+/* Báo cáo cho admin: mỗi việc ghi một dòng vào nhật ký, chỉ admin đọc được */
+let logApi=null;
+function logEvent(kind,text){
+  if(!logApi) return;
+  try{ logApi.add(kind,cleanName(myName()==="Bạn"?"":myName())||"Phật tử",String(text||"").replace(/\s+/g," ").trim().slice(0,400)).catch(()=>{}); }catch(e){}
+}
+/* Mỗi lần vào chùa (một tab) chỉ ghi và báo email một lần, tải lại trang không tính thêm */
+function logEnter(){
+  let done=false; try{ done=!!sessionStorage.getItem("cdyt-da-ghi-vao"); sessionStorage.setItem("cdyt-da-ghi-vao","1"); }catch(e){}
+  if(done) return;
+  logEvent("enter",`Vào chùa (${myGender==="f"?"nữ":"nam"})${isOwner?" · admin":""}`);
+  if(NOTIFY_URL && !isOwner){
+    const body=JSON.stringify({name:myName(),gender:myGender==="f"?"Nữ":"Nam",time:new Date().toISOString(),page:location.origin+location.pathname});
+    fetch(NOTIFY_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body}).catch(()=>{});
+  }
+}
 async function initData(){
   if(C && C.use){
     try{ user=await C.use("user"); }catch(e){ user=null; }
@@ -1705,6 +1866,8 @@ async function initData(){
       showAdminPanel();
     }
     try{ db=await C.use("db"); }catch(e){ db=null; }
+    try{ logApi=await C.use("log"); }catch(e){ logApi=null; }
+    if(uid) logEnter();
   }
   if(!db){
     regLoaded=lanLoaded=true; renderReg(); renderLan(); renderChat();
@@ -1743,7 +1906,7 @@ async function renderReg(){
       ${items.map(it=>{ const P=peopleOf(it); return `<div class="entry"><div class="who">${esc(P.names[0])}${it.owner===uid?"<em>của bạn</em>":""}</div>
         <div class="n">${P.count} người · ${esc(it.buoi||"")}${(it.owner===uid||isOwner)?` · <button class="link" data-del="${esc(it.owner)}|${esc(it.id)}">${it.owner===uid?"Hủy":"Gỡ"}</button>`:""}</div>
         ${P.names.length>1?`<div class="ppl">Đi cùng: ${P.names.slice(1).map(esc).join(", ")}</div>`:""}
-        ${it.nguyen?`<div class="wish">${esc(it.nguyen)}</div>`:""}</div>`; }).join("")}</div>`;
+        ${isOwner&&it.nguyen?`<div class="wish">${esc(it.nguyen)}</div>`:""}</div>`; }).join("")}</div>`;
   }).join("");
 }
 /* Danh sách người của một đăng ký (đọc được cả mục kiểu cũ chỉ có tên + số người) */
@@ -1797,10 +1960,49 @@ function updateAdminStats(){
 }
 function showAdminPanel(){
   if(!isOwner) return;
-  $("tabAdmin").hidden=false;
+  $("tabAdmin").hidden=false; $("tabReport").hidden=false;
   updateAdminStats(); setInterval(updateAdminStats,2000);
 }
 $("adRegJump").addEventListener("click",()=>openTab("reg"));
+$("adReport").addEventListener("click",()=>{ $("repKind").value=""; openTab("report"); });
+$("adLanWish").addEventListener("click",()=>{ $("repKind").value="lantern"; openTab("report"); });
+const REP_KIND={enter:"Vào chùa",chat:"Trò chuyện",lantern:"Hoa đăng",reg:"Đăng ký",pray:"Việc lễ",touch:"Ôm, hôn"};
+let repRows=[], repClearArmed=0;
+const repTime=t=>{ const d=new Date(t||0); return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+async function loadReport(){
+  if(!isOwner) return;
+  const box=$("repList");
+  if(!logApi){ box.innerHTML=`<div class="empty">Chế độ này chưa có báo cáo.</div>`; return; }
+  box.innerHTML=`<div class="empty">Đang tải báo cáo…</div>`;
+  try{ repRows=await logApi.recent(1000); }
+  catch(e){ repRows=[]; box.innerHTML=`<div class="empty">Chưa đọc được báo cáo. Hãy kiểm tra luật bảo mật mới (database.rules.json) đã được đưa lên Firebase chưa.</div>`; $("repSum").textContent=""; return; }
+  renderReport();
+}
+function renderReport(){
+  const kind=$("repKind").value, today=isoOf(new Date());
+  const todayRows=repRows.filter(r=>isoOf(new Date(r.t||0))===today);
+  const enters=todayRows.filter(r=>r.kind==="enter");
+  $("repSum").innerHTML=`<span>Hôm nay: ${enters.length} lượt vào chùa, ${new Set(enters.map(r=>r.by)).size} người</span><span>${todayRows.filter(r=>r.kind==="chat").length} lời nhắn · ${todayRows.filter(r=>r.kind==="lantern").length} hoa đăng · ${todayRows.filter(r=>r.kind==="reg").length} đăng ký</span><span>Đã tải ${repRows.length} dòng gần nhất</span>`;
+  const rows=repRows.filter(r=>!kind||r.kind===kind).slice().reverse();
+  if(!rows.length){ $("repList").innerHTML=`<div class="empty">Chưa có dòng nào cho mục này.</div>`; return; }
+  $("repList").innerHTML=rows.slice(0,300).map(r=>`<div class="rep"><div class="rh"><b>${esc(r.name||"Phật tử")}</b><span class="k">${esc(REP_KIND[r.kind]||r.kind||"")}</span><span>${repTime(r.t)}</span></div>${r.text?`<div>${esc(r.text)}</div>`:""}</div>`).join("")
+    +(rows.length>300?`<div class="empty">Đang hiện 300 dòng mới nhất. Tải CSV để xem đủ ${rows.length} dòng.</div>`:"");
+}
+$("repKind").addEventListener("change",renderReport);
+$("repRefresh").addEventListener("click",loadReport);
+$("repCsv").addEventListener("click",()=>{
+  if(!repRows.length){ toast("Chưa có dữ liệu để tải."); return; }
+  const kind=$("repKind").value, q=s=>`"${String(s==null?"":s).replace(/"/g,'""')}"`;
+  const lines=[["Thời gian","Loại","Tên","Nội dung"].map(q).join(",")].concat(repRows.filter(r=>!kind||r.kind===kind).map(r=>[repTime(r.t),REP_KIND[r.kind]||r.kind,r.name,r.text].map(q).join(",")));
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob(["\ufeff"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"}));
+  a.download=`bao-cao-chua-dong-${isoOf(new Date())}.csv`; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1000);
+});
+$("repClear").addEventListener("click",()=>{
+  if(!logApi || !isOwner) return;
+  if(Date.now()-repClearArmed>4000){ repClearArmed=Date.now(); $("repClear").textContent="Bấm lần nữa để xóa hết báo cáo"; setTimeout(()=>$("repClear").textContent="Xóa toàn bộ báo cáo",4000); return; }
+  repClearArmed=0; $("repClear").textContent="Xóa toàn bộ báo cáo";
+  logApi.clear().then(()=>{ repRows=[]; renderReport(); toast("Đã xóa toàn bộ báo cáo."); }).catch(()=>toast("Chưa xóa được báo cáo."));
+});
 $("adLanJump").addEventListener("click",()=>openTab("lan"));
 $("addPerson").addEventListener("click",()=>{ openTab("reg"); const i=addPersonRow(); if(i) i.focus(); });
 $("people").addEventListener("keydown",e=>{
@@ -1829,14 +2031,15 @@ $("regForm").addEventListener("submit",e=>{
     }
   } else if(tabName) names.push(tabName);
   if(!names.length){ st.className="status err"; st.textContent="Hãy nhập tên ít nhất một người đi lễ."; $("people").querySelector("input").focus(); return; }
-  const item={id:rid(), ten:names[0], nguoi:names, songuoi:names.length, ngay:$("rDay").value, buoi:$("rTime").value, nguyen:$("rWish").value.trim().slice(0,240), at:Date.now()};
+  const item={id:rid(), ten:names[0], nguoi:names, songuoi:names.length, ngay:$("rDay").value, buoi:$("rTime").value, at:Date.now()};
+  const wish=$("rWish").value.replace(/\s+/g," ").trim().slice(0,240);
   const todayIso=isoOf(new Date());
   const items=myRegItems().filter(i=>i.ngay>=todayIso);
   if(items.length>=20){ st.className="status err"; st.textContent="Mỗi tài khoản giữ tối đa 20 lượt đăng ký sắp tới. Hãy hủy bớt một lượt."; return; }
   items.push(item);
   $("regBtn").disabled=true; st.className="status"; st.textContent="Đang gửi…";
   queue(async()=>{
-    try{ await db.doc("dangky/"+uid).set({items}); st.className="status ok"; const L=dayLabel(item.ngay); st.textContent=`Đã đăng ký ${names.length} người đi lễ ${L.lunar}.`; $("rWish").value=""; resetPeople(); }
+    try{ await db.doc("dangky/"+uid).set({items}); st.className="status ok"; const L=dayLabel(item.ngay); st.textContent=`Đã đăng ký ${names.length} người đi lễ ${L.lunar}.`; logEvent("reg",`${names.join(", ")} · ${L.lunar} (${L.solar}) · ${item.buoi}${wish?` · Nguyện: ${wish}`:""}`); $("rWish").value=""; resetPeople(); }
     catch(err){ st.className="status err"; st.textContent = err&&err.code==="quota_exceeded" ? "Danh sách đã đầy, chưa thêm được." : "Bạn chưa có quyền đăng ký trên trang này."; }
     $("regBtn").disabled=false;
   });
@@ -1852,12 +2055,13 @@ $("lanForm").addEventListener("submit",e=>{
   e.preventDefault();
   const loi=$("lanText").value.trim().slice(0,160); if(!loi) return;
   const d=lanDocs.find(d=>d.id===uid); const items=(d&&Array.isArray(d.items)?d.items.slice():[]);
-  items.push({id:rid(),loi,at:Date.now()}); while(items.length>3) items.shift();
+  items.push({id:rid(),ten:cleanName(myName()=="Bạn"?"":myName()),at:Date.now()}); while(items.length>3) items.shift();
+  logEvent("lantern",loi);
   $("lanDlg").hidden=true; $("lanText").value=""; vp.focus({preventScroll:true});
   queue(async()=>{ try{ await db.doc("hoadang/"+uid).set({items}); toast("Hoa đăng đã trôi trên hồ sen."); bellSound(0.12); }catch(err){ toast("Chưa thả được hoa đăng."); } });
 });
 function allLanterns(){
-  const out=[]; for(const d of lanDocs){ if(!Array.isArray(d.items)) continue; for(const it of d.items) if(it&&it.loi) out.push({...it,owner:d.id}); }
+  const out=[]; for(const d of lanDocs){ if(!Array.isArray(d.items)) continue; for(const it of d.items) if(it&&(it.loi||it.ten||it.at)) out.push({...it,owner:d.id}); }
   return out.sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,40);
 }
 function syncLanterns(){
@@ -1879,8 +2083,8 @@ async function renderLan(){
   if(!list.length){ box.innerHTML=`<div class="empty">Chưa có hoa đăng nào trên hồ. Hãy đến hồ sen đá trên đỉnh và thả hoa đăng đầu tiên.</div>`; return; }
   const nm=await namesFor(list.map(i=>i.owner));
   box.innerHTML=list.slice(0,12).map(it=>{ const d=new Date(it.at||0);
-    const who = it.owner===uid ? "Bạn" : (nm[it.owner]||"Phật tử");
-    return `<article><p class="txt">${esc(it.loi)}</p><div class="meta">${esc(who)} · ${d.getDate()}/${d.getMonth()+1} lúc ${pad(d.getHours())}:${pad(d.getMinutes())}${(it.owner===uid||isOwner)?` · <button class="link" data-lan="${esc(it.owner)}|${esc(it.id)}" style="color:#7a5b45">${it.owner===uid?"Thu lại":"Gỡ"}</button>`:""}</div></article>`; }).join("");
+    const who = it.owner===uid ? "Bạn" : (cleanName(it.ten)||nm[it.owner]||"Phật tử");
+    return `<article>${isOwner&&it.loi?`<p class="txt">${esc(it.loi)}</p>`:`<p class="txt">Một hoa đăng đang trôi trên hồ sen</p>`}<div class="meta">${esc(who)} · ${d.getDate()}/${d.getMonth()+1} lúc ${pad(d.getHours())}:${pad(d.getMinutes())}${(it.owner===uid||isOwner)?` · <button class="link" data-lan="${esc(it.owner)}|${esc(it.id)}" style="color:#7a5b45">${it.owner===uid?"Thu lại":"Gỡ"}</button>`:""}</div></article>`; }).join("");
 }
 $("lanList").addEventListener("click",e=>{
   const b=e.target.closest("[data-lan]"); if(!b||!db) return;

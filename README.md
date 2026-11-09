@@ -19,6 +19,18 @@ Cảnh chùa chiếm toàn màn hình, mọi chức năng nằm ở thanh dọc 
 
 Khi đóng trang, trình duyệt quên tên, giới tính và phiên đăng nhập (kể cả admin); máy chủ xóa ngay vị trí và lời nhắn của người đó. Đăng ký đi lễ và hoa đăng vẫn được giữ. Tải lại trang cũng xóa lời nhắn của chính mình nhưng giữ tên.
 
+### Báo cáo cho admin
+
+Mục **Báo cáo** (chỉ admin thấy) ghi lại: ai vào chùa và lúc nào, lời nhắn, hoa đăng cầu gì, đăng ký và lời nguyện, các việc lễ, ôm và hôn. Người đi lễ được báo trước ở màn hình vào chùa. Lời nguyện của hoa đăng và đăng ký chỉ admin đọc được; người khác chỉ thấy hoa đăng trôi trên hồ. Nhật ký nằm ở mục `logs` của Realtime Database, chỉ admin đọc và xóa được.
+
+### Email khi có người vào chùa
+
+Trang gửi tín hiệu tới một Google Apps Script (`email-notify.gs`) chạy bằng tài khoản Google của admin, script gửi email về chính tài khoản đó. Làm theo hướng dẫn ở đầu file `email-notify.gs`, rồi dán URL ứng dụng web vào `NOTIFY_URL` trong `index.html`. Để trống thì trang không gửi email.
+
+### Ôm, hôn và va chạm
+
+Nhân vật không đi xuyên qua nhau. Khi đứng gần một người, nút **Ôm** và **Hôn** hiện ra; người kia phải bấm **Đồng ý** thì mới diễn ra.
+
 Khi đăng ký đi lễ, chỉ chủ trang được thêm nhiều người. Người khác đăng ký một người bằng tên đại diện của mình; trang chỉ tính và hiển thị một người cho các đăng ký này.
 
 - Họ tên, lời nguyện, hoa đăng và lời nhắn hiện công khai cho tất cả người vào trang.
