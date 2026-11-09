@@ -21,7 +21,7 @@ Khi đóng trang, trình duyệt quên tên, giới tính và phiên đăng nh�
 
 ### Báo cáo cho admin
 
-Mục **Báo cáo** (chỉ admin thấy) ghi lại: ai vào chùa và lúc nào, lời nhắn, hoa đăng cầu gì, đăng ký và lời nguyện, các việc lễ, ôm và hôn. Người đi lễ được báo trước ở màn hình vào chùa. Lời nguyện của hoa đăng và đăng ký chỉ admin đọc được; người khác chỉ thấy hoa đăng trôi trên hồ. Nhật ký nằm ở mục `logs` của Realtime Database, chỉ admin đọc và xóa được.
+Mục **Báo cáo** (chỉ admin thấy) ghi lại: ai vào chùa và lúc nào, lời nhắn, hoa đăng cầu gì, đăng ký và lời nguyện, các việc lễ, ôm và hôn. Người đi lễ được báo trước ở màn hình vào chùa. Admin đưa chuột (hoặc chạm trên điện thoại) vào một hoa đăng trên hồ sen để xem lời nguyện trong bong bóng. Lời nguyện của hoa đăng và đăng ký chỉ admin đọc được; người khác chỉ thấy hoa đăng trôi trên hồ. Nhật ký nằm ở mục `logs` của Realtime Database, chỉ admin đọc và xóa được.
 
 ### Email khi có người vào chùa
 

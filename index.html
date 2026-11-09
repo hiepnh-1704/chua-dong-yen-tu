@@ -76,6 +76,8 @@ h1 { font-family: var(--display); font-weight: 700; font-size: 30px; line-height
 .bubble::after { bottom: -8px; margin-left: -6.5px; border-width: 9px 6.5px 0; border-top-color: #fffdf5 }
 .bubble .to { display: block; font-size: 11px; font-weight: 600; color: #a8322a }
 .bubble.forme { background: #ffe9a8 }
+.bubble.lanwish { background: #fde8ee; max-width: 260px }
+.bubble.lanwish::after { border-top-color: #fde8ee }
 .bubble.forme::after { border-top-color: #ffe9a8 }
 .chat { display: grid; gap: 8px; margin-top: 12px; padding: 12px 14px; background: var(--lacquer); border: 1px solid var(--line); border-radius: 8px }
 .chathead { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; align-items: baseline }
@@ -1028,20 +1030,37 @@ if(ready3d){
   [[-9,24],[9,24],[-26,20],[26,22],[-25,-14,1.3],[25,-14,1.2],[-12,-33],[12,-33],[26,-30],[-28,-28],[20,26],[-20,-6,1.6],[28,4],[-30,6]].forEach(t=>pine(t[0],t[1],t[2]||1));
   // Hàng tùng quanh sân chùa
   [[-17,-9,1.1],[17,-9,1.1],[-17,18],[17,17],[-13,27,0.9],[13,27,0.9],[-24,10],[24,13],[-11.5,-12,0.85],[11.5,-12,0.85],[-17,-1,0.9],[17,-1,0.9]].forEach(t=>pine(t[0],t[1],t[2]||1));
-  // Chậu hoa men lam quanh sân và dọc lối đi
-  { const potGeo=new THREE.CylinderGeometry(0.42,0.3,0.55,14), rimGeo=new THREE.TorusGeometry(0.42,0.05,6,18), soilGeo=new THREE.CircleGeometry(0.38,14);
-    const glazes=[M(0x2f5f9e),M(0x8a4b2a),M(0x3f7a6a),M(0xc9b48a)], rim=M(0xe8e0cf), soil=M(0x3a2a1c);
-    const blooms=[M(0xe8738f),M(0xf2c14e),M(0xd84a3a),M(0xf4f0e6),M(0xb06ad0)], leafM=mat.leaf;
-    const pot=(x,z,i)=>{
-      const p=cyl(0.42,0.3,0.55,glazes[i%glazes.length],x,0.28,z,14); p.geometry=potGeo;
-      const r=new THREE.Mesh(rimGeo,rim); r.rotation.x=Math.PI/2; r.position.set(x,0.55,z); add(r);
-      const s=new THREE.Mesh(soilGeo,soil); s.rotation.x=-Math.PI/2; s.position.set(x,0.52,z); add(s);
-      for(let k=0;k<5;k++){ const a=k/5*Math.PI*2+i; ell(leafM,scene,x+Math.cos(a)*0.2,0.68,z+Math.sin(a)*0.2,0.16,0.09,0.16,SPH_LO); }
-      for(let k=0;k<7;k++){ const a=k*2.39+i*0.7, rr=0.08+(k%3)*0.08; ell(blooms[(i+k)%blooms.length],scene,x+Math.cos(a)*rr,0.78+(k%2)*0.08,z+Math.sin(a)*rr,0.09,0.08,0.09,SPH_LO); }
-      obstaclesCirc.push([x,z,0.45]); };
+  // Chậu cây bồ đề: chậu vuông sơn then viền vàng trên bệ đá, thân cong, tán tròn và lá hình tim có đuôi nhọn
+  { const potGeo=new THREE.CylinderGeometry(0.56,0.42,0.62,4), rimGeo=new THREE.CylinderGeometry(0.6,0.6,0.07,4), bandGeo=new THREE.CylinderGeometry(0.5,0.47,0.05,4);
+    const plinthGeo=new THREE.BoxGeometry(0.95,0.14,0.95), soilGeo=new THREE.CircleGeometry(0.42,4);
+    const lacq=M(0x4a1a12), gold=M(0xc89a3c,{emissive:0x2a1a05}), stone=mat.wallY, soil=M(0x2f2117);
+    const crownA=M(0x3f6b34), crownB=M(0x4f7d3c);
+    const leafShape=new THREE.Shape();
+    leafShape.moveTo(0,0.34); leafShape.quadraticCurveTo(0.02,0.22,0.06,0.16);
+    leafShape.bezierCurveTo(0.2,0.12,0.2,-0.08,0,-0.12); leafShape.bezierCurveTo(-0.2,-0.08,-0.2,0.12,-0.06,0.16);
+    leafShape.quadraticCurveTo(-0.02,0.22,0,0.34);
+    const leafGeo=new THREE.ShapeGeometry(leafShape,6);
+    const leafMats=[new THREE.MeshLambertMaterial({color:0x6c9a46,side:THREE.DoubleSide}),new THREE.MeshLambertMaterial({color:0x8db35a,side:THREE.DoubleSide})];
+    const bodhi=(x,z,i)=>{
+      const plinth=new THREE.Mesh(plinthGeo,stone); plinth.position.set(x,0.07,z); add(plinth);
+      const pot=new THREE.Mesh(potGeo,lacq); pot.position.set(x,0.45,z); pot.rotation.y=Math.PI/4; add(pot);
+      const rim=new THREE.Mesh(rimGeo,gold); rim.position.set(x,0.77,z); rim.rotation.y=Math.PI/4; add(rim);
+      const band=new THREE.Mesh(bandGeo,gold); band.position.set(x,0.3,z); band.rotation.y=Math.PI/4; add(band);
+      const s=new THREE.Mesh(soilGeo,soil); s.rotation.set(-Math.PI/2,0,Math.PI/4); s.position.set(x,0.75,z); add(s);
+      const lean=((i*37)%7-3)*0.03;
+      tube([[x,0.72,z],[x+0.08+lean,1.2,z-0.04],[x-0.04+lean,1.65,z+0.05],[x+lean,1.95,z]],0.07,mat.trunk,scene,12);
+      [[0,2.15,0,0.62,0.48,0.62],[0.32,1.95,0.12,0.42,0.34,0.42],[-0.3,2.0,-0.1,0.42,0.34,0.42],[0.05,2.45,-0.05,0.4,0.3,0.4]].forEach((c,k)=>
+        ell(k%2?crownB:crownA,scene,x+c[0]+lean,c[1],z+c[2],c[3],c[4],c[5],SPH_LO));
+      for(let k=0;k<16;k++){
+        const a=k*2.39+i, h=1.8+((k*7)%6)*0.12, rr=0.62-Math.abs(h-2.15)*0.4;
+        const lf=new THREE.Mesh(leafGeo,leafMats[k%2]);
+        lf.position.set(x+lean+Math.cos(a)*rr,h-0.18,z+Math.sin(a)*rr);
+        lf.rotation.set(-0.25+((k*5)%4)*0.1,-a+Math.PI/2,Math.PI); add(lf);
+      }
+      obstaclesCirc.push([x,z,0.6]); };
     let i=0;
-    for(const z of [20,12,4,-4]) for(const x of [-3.2,3.2]) pot(x,z,i++);
-    for(const z of [26,18,-2,-10]) for(const x of [-8.5,8.5]) pot(x,z,i++); }
+    for(const z of [20,12,4,-4]) for(const x of [-3.2,3.2]) bodhi(x,z,i++);
+    for(const z of [26,18,-2,-10]) for(const x of [-8.5,8.5]) bodhi(x,z,i++); }
   // Rừng trúc (Trúc Lâm Yên Tử)
   const bamboo=(x,z)=>{ for(let i=0;i<11;i++){ const a=i*2.4, r=0.3+((i*7)%5)*0.2, h=5+((i*13)%7)*0.55, bx=x+Math.cos(a)*r, bz=z+Math.sin(a)*r;
       const c=cyl(0.055,0.07,h,mat.bamboo,bx,h/2,bz,6); c.rotation.z=((i*5)%7-3)*0.02;
@@ -1252,6 +1271,10 @@ canvasEl.addEventListener("pointermove",e=>{
   if(drag.moved){ camYaw-=dx*0.006; camPitch=Math.min(1.1,Math.max(0.15,camPitch+dy*0.004)); }
 });
 canvasEl.addEventListener("pointerup",e=>{
+  if(drag && !drag.moved && ready3d && isOwner){
+    const m=pickLantern(e.clientX,e.clientY);
+    if(m){ lanHover=m; showLanWish(m); lanPinnedUntil=performance.now()+8000; drag=null; return; }
+  }
   if(drag && !drag.moved && ready3d){
     const r=canvasEl.getBoundingClientRect();
     const ndc=new THREE.Vector2((e.clientX-r.left)/r.width*2-1, -((e.clientY-r.top)/r.height*2-1));
@@ -1480,6 +1503,7 @@ function frame(now){
   }
   placeTag(meTag,me.x,me.y+1.72,me.z);
   placeBubble(meChat,now,me.x,me.y+2.12,me.z);
+  placeLanWish(now);
   placeFx(meChat,me.touch&&me.touch.kind,me.x,me.y+1.95,me.z);
   if(me.touch){ const tp=peerByTid(me.touch.with); if(tp) me.ry=Math.atan2(tp.x-me.x,tp.z-me.z);
     if(!tp || now>me.touch.until){ me.touch=null; setPresence(true); updateActs(); } }
@@ -1864,6 +1888,7 @@ async function initData(){
       if(needsAdminLogin(tabName) && !isOwner){ try{ sessionStorage.removeItem(TAB_KEY); }catch(e){} location.reload(); return; }
       $("logoutBtn").hidden=!(isOwner && window.cdytAuth);
       showAdminPanel();
+      setTimeout(refreshLanternWishes,1500);
     }
     try{ db=await C.use("db"); }catch(e){ db=null; }
     try{ logApi=await C.use("log"); }catch(e){ logApi=null; }
@@ -1881,7 +1906,7 @@ async function initData(){
       err=>{ done=true; clearTimeout(timer); setNote("Không đọc được dữ liệu dùng chung lúc này."); });
   };
   watch("dangky",docs=>{ regDocs=docs; regLoaded=true; renderReg(); refreshNames(); },"danh sách đăng ký");
-  watch("hoadang",docs=>{ lanDocs=docs; lanLoaded=true; renderLan(); syncLanterns(); },"hoa đăng");
+  watch("hoadang",docs=>{ lanDocs=docs; lanLoaded=true; renderLan(); syncLanterns(); refreshLanternWishes(); },"hoa đăng");
   watch("hoithoai",docs=>{ chatDocs=docs; renderChat(); },"hội thoại");
   if(STANDALONE) setNote("Bản chạy độc lập: đăng ký, hoa đăng và hội thoại được lưu trên trình duyệt này. Mở trang ở nhiều tab cùng trình duyệt để thử nhiều người đi lễ.");
   else if(location.hash==="#ma-cua-toi") setNote("Mã của bạn: "+uid);
@@ -2064,6 +2089,62 @@ function allLanterns(){
   const out=[]; for(const d of lanDocs){ if(!Array.isArray(d.items)) continue; for(const it of d.items) if(it&&(it.loi||it.ten||it.at)) out.push({...it,owner:d.id}); }
   return out.sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,40);
 }
+/* Lời nguyện của hoa đăng chỉ nằm trong báo cáo (admin đọc được). Ghép mỗi hoa đăng với dòng báo cáo
+   cùng người thả, gần thời điểm thả nhất. Hoa đăng kiểu cũ có sẵn lời nguyện thì dùng luôn. */
+let lanWishLogs=[], lanWishTimer=null;
+function refreshLanternWishes(){
+  if(!isOwner || !logApi) return;
+  clearTimeout(lanWishTimer);
+  lanWishTimer=setTimeout(async()=>{
+    try{ lanWishLogs=(await logApi.recent(1000)).filter(r=>r.kind==="lantern"); renderLan(); }catch(e){}
+  },800);
+}
+function lanternWish(it){
+  if(it.loi) return it.loi;
+  let best=null, bd=10*60*1000;
+  for(const r of lanWishLogs){ if(r.by!==it.owner) continue; const d=Math.abs((r.t||0)-(it.at||0)); if(d<bd){ bd=d; best=r; } }
+  return best ? best.text : "";
+}
+const lanWishEl=document.createElement("div"); lanWishEl.className="bubble lanwish"; lanWishEl.style.display="none";
+let lanHover=null, lanPinnedUntil=0, lanPickAt=0;
+function pickLantern(clientX,clientY){
+  if(!ready3d || !lanternGroup || !lanternGroup.children.length) return null;
+  const r=canvasEl.getBoundingClientRect();
+  const ndc=new THREE.Vector2((clientX-r.left)/r.width*2-1, -((clientY-r.top)/r.height*2-1));
+  const ray=new THREE.Raycaster(); ray.setFromCamera(ndc,W.camera);
+  for(const L of lanterns) L.mesh.updateMatrixWorld();
+  const hits=ray.intersectObjects(lanternGroup.children,true);
+  let o=hits.length?hits[0].object:null;
+  while(o && !(o.userData && o.userData.lantern)) o=o.parent;
+  if(o) return o;
+  // hoa đăng nhỏ: cho phép chỉ gần trúng trong vòng 28 điểm ảnh
+  let best=null, bd=28; const v=new THREE.Vector3();
+  for(const L of lanterns){ v.copy(L.mesh.position); v.y+=0.2; v.project(W.camera); if(v.z>1) continue;
+    const sx=(v.x*0.5+0.5)*r.width, sy=(-v.y*0.5+0.5)*r.height, d=Math.hypot(sx-(clientX-r.left),sy-(clientY-r.top)); if(d<bd){ bd=d; best=L.mesh; } }
+  return best;
+}
+function showLanWish(mesh){
+  const L=mesh.userData.lantern, wish=lanternWish(L)||"Chưa tìm thấy lời nguyện của hoa đăng này trong báo cáo.";
+  lanWishEl.textContent="";
+  const to=document.createElement("span"); to.className="to"; to.textContent=`Lời nguyện của ${L.owner===uid?"bạn":(L.ten||"Phật tử")}`;
+  lanWishEl.append(to,document.createTextNode(wish));
+  if(!lanWishEl.parentNode) labelsEl.appendChild(lanWishEl);
+}
+canvasEl.addEventListener("pointermove",e=>{
+  if(!isOwner || drag || e.pointerType==="touch") return;
+  const now=performance.now(); if(now-lanPickAt<60) return; lanPickAt=now;
+  const m=pickLantern(e.clientX,e.clientY);
+  canvasEl.style.cursor=m?"help":"";
+  if(m!==lanHover){ lanHover=m; if(m){ showLanWish(m); lanPinnedUntil=0; } }
+});
+canvasEl.addEventListener("pointerleave",()=>{ if(performance.now()>lanPinnedUntil) lanHover=null; canvasEl.style.cursor=""; });
+function placeLanWish(now){
+  // danh sách hoa đăng vừa dựng lại (có người thả hay thu hoa đăng): tìm lại đúng hoa đăng đang chỉ
+  if(lanHover && !lanHover.parent){ const id=lanHover.userData.lantern.id, L=lanterns.find(x=>x.mesh.userData.lantern.id===id); lanHover=L?L.mesh:null; }
+  if(!lanHover || !isOwner){ lanWishEl.style.display="none"; return; }
+  if(lanPinnedUntil && now>lanPinnedUntil){ lanHover=null; lanPinnedUntil=0; lanWishEl.style.display="none"; return; }
+  placeTag(lanWishEl,lanHover.position.x,lanHover.position.y+0.55,lanHover.position.z);
+}
 function syncLanterns(){
   if(!ready3d) return;
   lanternGroup.clear(); lanterns=[];
@@ -2073,6 +2154,7 @@ function syncLanterns(){
     for(let i=0;i<6;i++){ const p=new THREE.Mesh(new THREE.ConeGeometry(0.11,0.34,5),W.mat.lotus); const a=i/6*Math.PI*2; p.position.set(Math.cos(a)*0.16,0.17,Math.sin(a)*0.16); p.rotation.set(Math.sin(a)*0.5,0,-Math.cos(a)*0.5); g.add(p); }
     const fl=new THREE.Mesh(new THREE.SphereGeometry(0.06,8,6),W.mat.flame); fl.position.y=0.3; fl.scale.set(1,1.6,1); g.add(fl);
     lanternGroup.add(g);
+    g.userData.lantern={id:it.id,owner:it.owner,at:it.at||0,ten:cleanName(it.ten),loi:typeof it.loi==="string"?it.loi:""};
     lanterns.push({mesh:g,a:(h%628)/100,r:1.4+(h%390)/100,sp:(0.03+(h%50)/1000)*((h&1)?1:-1)});
   }
 }
@@ -2084,7 +2166,8 @@ async function renderLan(){
   const nm=await namesFor(list.map(i=>i.owner));
   box.innerHTML=list.slice(0,12).map(it=>{ const d=new Date(it.at||0);
     const who = it.owner===uid ? "Bạn" : (cleanName(it.ten)||nm[it.owner]||"Phật tử");
-    return `<article>${isOwner&&it.loi?`<p class="txt">${esc(it.loi)}</p>`:`<p class="txt">Một hoa đăng đang trôi trên hồ sen</p>`}<div class="meta">${esc(who)} · ${d.getDate()}/${d.getMonth()+1} lúc ${pad(d.getHours())}:${pad(d.getMinutes())}${(it.owner===uid||isOwner)?` · <button class="link" data-lan="${esc(it.owner)}|${esc(it.id)}" style="color:#7a5b45">${it.owner===uid?"Thu lại":"Gỡ"}</button>`:""}</div></article>`; }).join("");
+    const wish=isOwner?lanternWish(it):"";
+    return `<article>${wish?`<p class="txt">${esc(wish)}</p>`:`<p class="txt">Một hoa đăng đang trôi trên hồ sen</p>`}<div class="meta">${esc(who)} · ${d.getDate()}/${d.getMonth()+1} lúc ${pad(d.getHours())}:${pad(d.getMinutes())}${(it.owner===uid||isOwner)?` · <button class="link" data-lan="${esc(it.owner)}|${esc(it.id)}" style="color:#7a5b45">${it.owner===uid?"Thu lại":"Gỡ"}</button>`:""}</div></article>`; }).join("");
 }
 $("lanList").addEventListener("click",e=>{
   const b=e.target.closest("[data-lan]"); if(!b||!db) return;
