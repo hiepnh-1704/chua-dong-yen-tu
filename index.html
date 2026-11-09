@@ -194,6 +194,8 @@ footer { color: var(--muted); font-size: 12px; border-top: 1px solid var(--line)
     <input type="password" id="gatePw" class="gatePw" autocomplete="current-password" hidden>
     <label id="gateGenderLabel">Giới tính</label>
     <div class="seg" role="group" aria-labelledby="gateGenderLabel"><button type="button" data-gate-gender="m" aria-pressed="false">Nam</button><button type="button" data-gate-gender="f" aria-pressed="false">Nữ</button></div>
+    <div id="gateOutfit" hidden><label id="gateOutfitLabel">Trang phục</label>
+      <div class="seg" role="group" aria-labelledby="gateOutfitLabel"><button type="button" data-gate-outfit="dress" aria-pressed="true">Váy voan</button><button type="button" data-gate-outfit="robe" aria-pressed="false">Áo tràng</button></div></div>
     <span class="status err gerr" id="gateErr" role="alert"></span>
     <button class="primary" type="submit" id="gateBtn">Vào chùa</button>
   </form>
@@ -263,7 +265,8 @@ footer { color: var(--muted); font-size: 12px; border-top: 1px solid var(--line)
       <button data-go="pond">Hồ sen</button>
     </div>
     <div class="namerow"><label for="myName">Tên đại diện của bạn</label><input type="text" id="myName" maxlength="40" placeholder="Nhập tên hiển thị" list="myNames"><datalist id="myNames"></datalist><button type="button" id="myNameBtn">Đổi tên</button>
-      <div class="seg" role="group" aria-label="Nhân vật"><button type="button" data-gender="m" aria-pressed="true">Nam</button><button type="button" data-gender="f" aria-pressed="false">Nữ</button></div></div>
+      <div class="seg" role="group" aria-label="Nhân vật"><button type="button" data-gender="m" aria-pressed="true">Nam</button><button type="button" data-gender="f" aria-pressed="false">Nữ</button></div>
+      <div class="seg" id="outfitRow" role="group" aria-label="Trang phục nữ" hidden><button type="button" data-outfit="dress" aria-pressed="true">Váy voan</button><button type="button" data-outfit="robe" aria-pressed="false">Áo tràng</button></div></div>
     <div class="hint">Bấm vào khung cảnh rồi đi bằng <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> hoặc phím mũi tên, kéo chuột để xoay góc nhìn, bấm xuống đất để đi tới đó, <kbd>E</kbd> để làm lễ, <kbd>Enter</kbd> để trò chuyện. Trong chùa Đồng: <kbd>E</kbd> vái lạy, <kbd>R</kbd> thắp hương, <kbd>Q</kbd> quỳ bái. Trên điện thoại dùng cần điều khiển ở góc dưới.</div>
     <p class="note">Khi bạn đóng trang, trình duyệt quên tên của bạn và bạn rời khỏi chùa ngay. Lần sau vào, bạn nhập tên mới.</p>
     <footer>Khung cảnh được dựng mô phỏng theo cảm hứng chùa Đồng trên đỉnh Yên Tử, mang tính tượng trưng, không phải bản sao kiến trúc thật; trang dùng để thực hành vibe coding. Mỗi người chỉ sửa được đăng ký và hoa đăng của mình; chủ trang có thể gỡ nội dung không phù hợp.</footer>
@@ -1093,22 +1096,24 @@ if(ready3d){
    Nữ mặc váy voan trễ vai tay phồng, chân váy nhiều tầng, tóc nâu dài thẳng rẽ ngôi, môi đỏ */
 const ROBES_M=[0x5f7393,0x6e5238,0x56606e,0x4f6a6a];      // lam, nâu, ghi, xanh rêu
 const ROBES_F=[0xedbba6,0xeeb7c6,0xe8cfa9,0xd9b8dc];      // hồng đào, hồng phấn, kem sâm panh, tím nhạt
+const ROBES_FT=[0x8ea3c6,0xa9876a,0x9a7f99,0x7f9a92];     // áo tràng nữ: lam nhạt, nâu sữa, tím hoa cà, ngọc
 const HAIR_F=[0x5a3322,0x4a2a1c,0x6a3e26,0x3e2418];        // các sắc nâu hạt dẻ
 const chibiGeo = ready3d ? { sph:new THREE.SphereGeometry(1,20,16), lo:new THREE.SphereGeometry(1,10,8) } : null;
-function makeAvatar(ci,gender){
-  const f = gender==="f";
+function makeAvatar(ci,gender,outfit){
+  const f = gender==="f", dress = f && outfit!=="robe";
   const g=new THREE.Group(), body=new THREE.Group(); g.add(body);
   const L=c=>new THREE.MeshLambertMaterial({color:c});
-  const robeM=L((f?ROBES_F:ROBES_M)[ci%4]), skin=W.mat.skin, hairM=L(0x1c130e), dark=L(0x2a1d16), white=L(0xf4efe6);
+  const robeM=L((dress?ROBES_F:f?ROBES_FT:ROBES_M)[ci%4]), skin=W.mat.skin, hairM=L(0x1c130e), dark=L(0x2a1d16), white=L(0xf4efe6);
   const E=(m,p,x,y,z,sx,sy,sz,geo=chibiGeo.sph)=>{ const o=new THREE.Mesh(geo,m); o.position.set(x,y,z); o.scale.set(sx,sy,sz); p.add(o); return o; };
   const lathe=(prof,m,y=0,sz=0.85)=>{ const o=new THREE.Mesh(new THREE.LatheGeometry(prof.map(p=>new THREE.Vector2(p[0],p[1])),24),m); o.position.y=y; o.scale.z=sz; body.add(o); return o; };
-  if(!f){
+  if(!dress){
     // dép
     for(const sx of [-1,1]) E(dark,body,sx*0.1,0.04,0.04,0.085,0.05,0.13,chibiGeo.lo);
-    // áo tràng dáng suông
-    lathe([[0,0.06],[0.28,0.06],[0.27,0.2],[0.24,0.45],[0.23,0.62],[0.2,0.7],[0.1,0.75],[0,0.76]],robeM);
+    // áo tràng dáng suông (nữ xòe hơn)
+    lathe(f ? [[0,0.06],[0.33,0.06],[0.31,0.18],[0.24,0.42],[0.2,0.6],[0.19,0.68],[0.1,0.74],[0,0.75]]
+            : [[0,0.06],[0.28,0.06],[0.27,0.2],[0.24,0.45],[0.23,0.62],[0.2,0.7],[0.1,0.75],[0,0.76]],robeM);
     const col=new THREE.Mesh(new THREE.TorusGeometry(0.11,0.025,6,16),white); col.position.y=0.73; col.rotation.x=Math.PI/2; body.add(col);
-    E(robeM,body,0,0.2,0.2,0.04,0.12,0.02,chibiGeo.lo).material=L(new THREE.Color(ROBES_M[ci%4]).multiplyScalar(0.75).getHex()); // đường xẻ tà
+    E(robeM,body,0,0.2,0.2,0.04,0.12,0.02,chibiGeo.lo).material=L(new THREE.Color((f?ROBES_FT:ROBES_M)[ci%4]).multiplyScalar(0.75).getHex()); // đường xẻ tà
   } else {
     // váy voan: lớp ngoài hơi trong, viền tầng đậm hơn một chút
     const dressHex=ROBES_F[ci%4];
@@ -1130,8 +1135,8 @@ function makeAvatar(ci,gender){
   // tay (xoay quanh vai để vung khi đi, chắp trước ngực khi lễ)
   const arms=[];
   for(const sx of [-1,1]){
-    const a=new THREE.Group(); a.position.set(sx*(f?0.235:0.2),0.66,0); body.add(a);
-    if(!f){
+    const a=new THREE.Group(); a.position.set(sx*(dress?0.235:0.2),0.66,0); body.add(a);
+    if(!dress){
       const sl=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.085,0.3,10),robeM); sl.position.y=-0.14; a.add(sl);
       E(skin,a,0,-0.31,0.01,0.055,0.055,0.055,chibiGeo.lo);
     } else {
@@ -1154,10 +1159,19 @@ function makeAvatar(ci,gender){
     const br=new THREE.Mesh(new THREE.TorusGeometry(0.04,0.008,4,10,Math.PI),hairM); br.position.set(sx*0.125,0.075,0.31); br.rotation.z=0; head.add(br); // lông mày
   }
   const mouth=new THREE.Mesh(new THREE.TorusGeometry(0.035,0.008,4,10,Math.PI),L(0xa0463c)); mouth.position.set(0,-0.12,0.315); mouth.rotation.z=Math.PI; head.add(mouth);
-  if(f){ mouth.visible=false; E(L(0xc8323c),head,0,-0.125,0.318,0.038,0.018,0.012,chibiGeo.lo); } // môi đỏ
+  if(dress){ mouth.visible=false; E(L(0xc8323c),head,0,-0.125,0.318,0.038,0.018,0.012,chibiGeo.lo); } // môi đỏ
   if(!f){
     const cap=new THREE.Mesh(new THREE.SphereGeometry(0.375,22,14,0,Math.PI*2,0,1.3),hairM); cap.rotation.x=-0.42; cap.position.set(0,0.01,-0.01); head.add(cap);
     E(hairM,head,0,0.2,0.24,0.22,0.07,0.08,chibiGeo.lo).rotation.x=0.5; // mái tóc
+  } else if(!dress){
+    // nữ mặc áo tràng: tóc đen dài búi sau, cài hoa sen
+    const cap=new THREE.Mesh(new THREE.SphereGeometry(0.38,22,14,0,Math.PI*2,0,1.45),hairM); cap.rotation.x=-0.3; head.add(cap);
+    E(hairM,head,0,-0.12,-0.16,0.34,0.36,0.24);                 // tóc dài phía sau
+    E(hairM,head,0,0.18,-0.34,0.15,0.14,0.14);                  // búi tóc
+    for(const sx of [-1,1]) E(hairM,head,sx*0.3,-0.12,0.12,0.07,0.2,0.07,chibiGeo.lo); // tóc mai
+    const fl=new THREE.Group(); fl.position.set(0.2,0.22,-0.3); head.add(fl);
+    for(let q=0;q<5;q++){ const a=q/5*Math.PI*2; E(L(0xf0a8b8),fl,Math.cos(a)*0.035,Math.sin(a)*0.035,0,0.03,0.03,0.015,chibiGeo.lo); }
+    E(L(0xf6d36a),fl,0,0,0.01,0.018,0.018,0.012,chibiGeo.lo);
   } else {
     const brown=L(HAIR_F[ci%4]), brownHi=L(new THREE.Color(HAIR_F[ci%4]).multiplyScalar(1.25).getHex());
     head.children.forEach(o=>{ if(o.material===hairM) o.material=brown; }); // lông mày cùng màu tóc
@@ -1179,7 +1193,7 @@ function makeAvatar(ci,gender){
   for(let q=0;q<3;q++){ const x=(q-1)*0.03;
     const sb=new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.5,4),L(0x8e2a1f)); sb.position.set(x,0.2,0); stick.add(sb);
     const tip=new THREE.Mesh(new THREE.SphereGeometry(0.016,6,5),new THREE.MeshBasicMaterial({color:0xff7a2a})); tip.position.set(x,0.45,0); stick.add(tip); }
-  g.userData={body,arms,head,stick,gender:f?"f":"m",ci};
+  g.userData={body,arms,head,stick,gender:f?"f":"m",outfit:dress?"dress":"robe",ci};
   W.scene.add(g); return g;
 }
 // Tư thế: vung tay khi đi, chắp tay vái khi lễ; quỳ thì hạ thấp người và cúi lạy chậm
@@ -1199,17 +1213,32 @@ function poseAvatar(av,bowAmt,walking,t,kneel,touch){
 }
 const GKEY="an-nhien-gioi-tinh";
 let myGender="m"; try{ const s=sessionStorage.getItem(GKEY); if(s==="f"||s==="m") myGender=s; }catch(e){}
+const OKEY="an-nhien-trang-phuc";
+let myOutfit="dress"; try{ const s=sessionStorage.getItem(OKEY); if(s==="dress"||s==="robe") myOutfit=s; }catch(e){}
 const me={ x:0, z:37, ry:Math.PI, bow:0, moving:false, ci:Math.floor(Math.random()*4), y:0, seat:-1, kneeling:false, holdT:0, touch:null };
 let pendingAct=null; // việc sẽ làm khi đi tới nơi: "kneel" hoặc "incense"
 let meAvatar=null, camYaw=0, camPitch=0.42, target=null;
 const keys=new Set(), joyVec={x:0,y:0};
-if(ready3d){ meAvatar=makeAvatar(me.ci,myGender); }
+if(ready3d){ meAvatar=makeAvatar(me.ci,myGender,myOutfit); }
 function setGender(gd){
   myGender = gd==="f" ? "f" : "m";
   try{ sessionStorage.setItem(GKEY,myGender); }catch(e){}
   document.querySelectorAll("[data-gender]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.gender===myGender)));
-  if(ready3d){ W.scene.remove(meAvatar); meAvatar=makeAvatar(me.ci,myGender); }
+  if(ready3d){ W.scene.remove(meAvatar); meAvatar=makeAvatar(me.ci,myGender,myOutfit); }
+  syncOutfitButtons();
   setPresence(true);
+}
+/* Trang phục nữ: váy voan hoặc áo tràng */
+function setOutfit(o){
+  myOutfit = o==="robe" ? "robe" : "dress";
+  try{ sessionStorage.setItem(OKEY,myOutfit); }catch(e){}
+  if(ready3d){ W.scene.remove(meAvatar); meAvatar=makeAvatar(me.ci,myGender,myOutfit); }
+  syncOutfitButtons();
+  setPresence(true);
+}
+function syncOutfitButtons(){
+  const row=document.getElementById("outfitRow"); if(row) row.hidden = myGender!=="f";
+  document.querySelectorAll("[data-outfit]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.outfit===myOutfit)));
 }
 
 function floorY(x,z){
@@ -1596,7 +1625,7 @@ function startTouch(kind,partnerTid,mover){
 async function roomEmit(topic){ if(!room) return; try{ await room.emit(topic,{t:Date.now()}); }catch(e){} }
 function setPresence(force){
   if(!room) return;
-  const p={x:Math.round(me.x*10)/10,z:Math.round(me.z*10)/10,r:Math.round(me.ry*100)/100,c:me.ci,g:myGender,tid:tabId,b:me.bow>0?1:0,s:me.seat,k:me.kneeling?1:0,i:me.holdT>0?1:0,a:me.touch?me.touch.kind:"",w:me.touch?me.touch.with:"",n:myName()==="Bạn"?"":myName()};
+  const p={x:Math.round(me.x*10)/10,z:Math.round(me.z*10)/10,r:Math.round(me.ry*100)/100,c:me.ci,g:myGender,o:myOutfit,tid:tabId,b:me.bow>0?1:0,s:me.seat,k:me.kneeling?1:0,i:me.holdT>0?1:0,a:me.touch?me.touch.kind:"",w:me.touch?me.touch.with:"",n:myName()==="Bạn"?"":myName()};
   const s=JSON.stringify(p); if(s===lastSent && !force) return; lastSent=s;
   room.presence(p).catch(()=>{});
 }
@@ -1651,9 +1680,10 @@ async function renderPeers(list){
     let o=peers.get(p.peer);
     if(!o){ const tag=document.createElement("div"); tag.className="tag"; tag.textContent="Phật tử"; tag.title="Bấm để trò chuyện"; labelsEl.appendChild(tag);
       const pid=p.peer; tag.addEventListener("click",()=>{ const q=peers.get(pid); if(q&&q.tid) selectChatPerson(q.tid); });
-      o={g:makeAvatar(Number(pr.c)||0,pr.g==="f"?"f":"m"),tag,x:pr.x,z:pr.z,ry:pr.r||0,by:p.by}; peers.set(p.peer,o); }
+      o={g:makeAvatar(Number(pr.c)||0,pr.g==="f"?"f":"m",pr.o),tag,x:pr.x,z:pr.z,ry:pr.r||0,by:p.by}; peers.set(p.peer,o); }
     const wantG=pr.g==="f"?"f":"m";
-    if(o.g.userData.gender!==wantG){ W.scene.remove(o.g); o.g=makeAvatar(Number(pr.c)||0,wantG); }
+    const wantO=wantG==="f" && pr.o==="robe" ? "robe" : (wantG==="f" ? "dress" : "robe");
+    if(o.g.userData.gender!==wantG || (wantG==="f" && o.g.userData.outfit!==wantO)){ W.scene.remove(o.g); o.g=makeAvatar(Number(pr.c)||0,wantG,pr.o); }
     o.tx=Math.max(-40,Math.min(40,pr.x)); o.tz=Math.max(-40,Math.min(45,pr.z)); o.try=Number(pr.r)||0; o.bowing=!!pr.b; o.kneeling=!!pr.k; o.holding=!!pr.i; o.touch=(pr.a==="hug"||pr.a==="kiss")?pr.a:""; o.by=p.by; o.isMe=p.isMe; o.pn=pr.n; o.tid=typeof pr.tid==="string"?pr.tid:"";
   }
   for(const [k,o] of peers) if(!live.has(k)){ W.scene.remove(o.g); o.tag.remove(); if(o.bubble) o.bubble.remove(); peers.delete(k); }
@@ -1840,6 +1870,8 @@ document.querySelectorAll("[data-gender]").forEach(b=>{
   b.setAttribute("aria-pressed",String(b.dataset.gender===myGender));
   b.addEventListener("click",()=>{ setGender(b.dataset.gender); toast(b.dataset.gender==="f"?"Đã đổi sang nhân vật nữ":"Đã đổi sang nhân vật nam"); });
 });
+document.querySelectorAll("[data-outfit]").forEach(b=>b.addEventListener("click",()=>{ setOutfit(b.dataset.outfit); toast(b.dataset.outfit==="robe"?"Đã đổi sang áo tràng":"Đã đổi sang váy voan"); }));
+syncOutfitButtons();
 $("myNameBtn").addEventListener("click",()=>{
   if(!cleanName($("myName").value)){ $("myName").value=tabName; toast("Tên đại diện không được để trống."); return; }
   // Nhập tên admin khi chưa đăng nhập: về màn hình vào chùa để nhập mật khẩu, không đổi tên ngay
@@ -2226,9 +2258,15 @@ else{
   $("gate").hidden=false; $("gateName").value=adminPrefill||tabName; togglePw();
   (adminPrefill?$("gatePw"):$("gateName")).focus();
   $("gateName").addEventListener("input",togglePw);
+  let gateOutfit=myOutfit;
   document.querySelectorAll("[data-gate-gender]").forEach(b=>b.addEventListener("click",()=>{
     gateGender=b.dataset.gateGender;
     document.querySelectorAll("[data-gate-gender]").forEach(o=>o.setAttribute("aria-pressed",String(o===b)));
+    $("gateOutfit").hidden = gateGender!=="f";
+  }));
+  document.querySelectorAll("[data-gate-outfit]").forEach(b=>b.addEventListener("click",()=>{
+    gateOutfit=b.dataset.gateOutfit;
+    document.querySelectorAll("[data-gate-outfit]").forEach(o=>o.setAttribute("aria-pressed",String(o===b)));
   }));
   $("gateForm").addEventListener("submit",async e=>{
     e.preventDefault();
@@ -2249,7 +2287,7 @@ else{
       }
       $("gateBtn").disabled=false; $("gatePw").value="";
     }
-    setTabName(name); setGender(gateGender); enterTemple();
+    setTabName(name); myOutfit=gateOutfit; try{ sessionStorage.setItem(OKEY,myOutfit); }catch(e){} setGender(gateGender); enterTemple();
   });
 }
 $("logoutBtn").addEventListener("click",async()=>{
