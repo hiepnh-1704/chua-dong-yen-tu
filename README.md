@@ -19,6 +19,8 @@ Cảnh chùa chiếm toàn màn hình, mọi chức năng nằm ở thanh dọc 
 
 Khi đóng trang, trình duyệt quên tên, giới tính và phiên đăng nhập (kể cả admin); máy chủ xóa ngay vị trí và lời nhắn của người đó. Đăng ký đi lễ và hoa đăng vẫn được giữ. Tải lại trang cũng xóa lời nhắn của chính mình nhưng giữ tên.
 
+Mỗi tên chỉ ở trong chùa một nơi (không phân biệt hoa thường, có dấu hay không). Cùng một tên vào ở máy hoặc tab khác thì phiên vào sau được giữ; phiên cũ tự rời chùa và hiện nút **Vào lại ở máy này**. Admin đăng nhập ở hai máy cũng vậy. Tên không được xác minh, nên người lạ dùng đúng tên của bạn cũng sẽ đẩy phiên của bạn ra.
+
 ### Báo cáo cho admin
 
 Mục **Báo cáo** (chỉ admin thấy) ghi lại: ai vào chùa và lúc nào, lời nhắn, hoa đăng cầu gì, đăng ký và lời nguyện, các việc lễ, ôm và hôn. Người đi lễ được báo trước ở màn hình vào chùa. Admin đưa chuột (hoặc chạm trên điện thoại) vào một hoa đăng trên hồ sen để xem lời nguyện trong bong bóng. Lời nguyện của hoa đăng và đăng ký chỉ admin đọc được; người khác chỉ thấy hoa đăng trôi trên hồ. Nhật ký nằm ở mục `logs` của Realtime Database, chỉ admin đọc và xóa được.

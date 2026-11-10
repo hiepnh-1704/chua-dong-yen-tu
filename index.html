@@ -188,6 +188,13 @@ footer { color: var(--muted); font-size: 12px; border-top: 1px solid var(--line)
 </style>
 </head>
 <body>
+<div class="dlg gate" id="kickDlg" role="alertdialog" aria-labelledby="kickTitle" hidden>
+  <div class="card">
+    <h3 id="kickTitle">Đã vào ở nơi khác</h3>
+    <p id="kickText"></p>
+    <button type="button" id="kickBack">Vào lại ở máy này</button>
+  </div>
+</div>
 <div class="dlg gate" id="gate" hidden>
   <form class="card" id="gateForm" autocomplete="off" novalidate>
     <h3>Vào chùa Đồng</h3>
@@ -439,15 +446,15 @@ if(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL && !(window.claude && w
     const myPeer=root.push().key, presRef=root.child("presence"), evRef=root.child("events");
     const myPresRef=presRef.child(myPeer), myEvRef=evRef.child(myPeer);
     const peerFns=new Set(), topicFns={};
-    let myPres={}, others=new Map(), online=false, evCount=0, evPrimed=false, evSeen={}, lastSend=0, sendTimer=null;
+    let gone=false, myPres={}, others=new Map(), online=false, evCount=0, evPrimed=false, evSeen={}, lastSend=0, sendTimer=null;
     const peerObj=(id,v,p)=>({peer:id,by:v.by,isMe:v.by===uid,sameTab:false,kind:"viewer",guest:false,presence:p,updatedAt:Date.now()});
     const list=()=>Object.freeze([{peer:myPeer,by:uid,isMe:true,sameTab:true,kind:"viewer",guest:false,presence:myPres,updatedAt:Date.now()},...others.values()]);
-    const sendPres=()=>{ lastSend=Date.now(); sendTimer=null; return online?myPresRef.set({by:uid,json:JSON.stringify(myPres),t:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{}):Promise.resolve(); };
+    const sendPres=()=>{ lastSend=Date.now(); sendTimer=null; return online&&!gone?myPresRef.set({by:uid,json:JSON.stringify(myPres),t:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{}):Promise.resolve(); };
     /* Nhịp báo còn ở trong chùa mỗi phút; người im quá 3 phút (trình duyệt treo, mất điện) bị coi là đã rời và được dọn khỏi chùa */
     const STALE_MS=180000; let serverOffset=0;
     root.child(".info/serverTimeOffset").on("value",s=>{ serverOffset=Number(s.val())||0; });
     setInterval(()=>{ if(online) sendPres(); },60000);
-    root.child(".info/connected").on("value",s=>{ online=s.val()===true; if(!online) return;
+    root.child(".info/connected").on("value",s=>{ online=s.val()===true; if(!online || gone) return;
       // Rời trang là rời chùa: máy chủ tự xóa vị trí và lời nhắn của người này, kể cả khi mất mạng hay trình duyệt tắt đột ngột
       myPresRef.onDisconnect().remove(); myEvRef.onDisconnect().remove();
       root.child("col/hoithoai/"+uid).onDisconnect().remove();
@@ -477,7 +484,12 @@ if(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL && !(window.claude && w
         else if(!sendTimer) sendTimer=setTimeout(sendPres,wait); },
       peers:list,
       onPeers:fn=>{ peerFns.add(fn); setTimeout(()=>{ const peers=list(); fn({peers,joined:peers,left:[],updated:[]}); },0); return ()=>peerFns.delete(fn); },
-      connected:()=>online };
+      connected:()=>online,
+      serverNow:()=>Date.now()+serverOffset,
+      /* Rời phòng khi tên này đã vào ở máy khác: xóa vị trí, ngừng nghe, không xóa hội thoại dùng chung của tài khoản */
+      leave:()=>{ if(gone) return; gone=true; clearTimeout(sendTimer); presRef.off(); evRef.off();
+        myPresRef.onDisconnect().cancel(); myEvRef.onDisconnect().cancel(); root.child("col/hoithoai/"+uid).onDisconnect().cancel();
+        myPresRef.remove().catch(()=>{}); myEvRef.remove().catch(()=>{}); } };
   };
 
   const makeUser=s=>({ id:async()=>s.uid, ownerId:async()=>s.owner, isOwner:async()=>s.isOwner, canEdit:async()=>true, can:async()=>true,
@@ -540,8 +552,8 @@ if(STANDALONE){
   if("BroadcastChannel" in window){
     const bc=new BroadcastChannel("chua-dong-yen-tu");
     const myPeer=Math.random().toString(36).slice(2,14), peerMap=new Map(), peerFns=new Set(), topicFns={};
-    let myPres={}, list=[];
-    const send=o=>{ try{ bc.postMessage(Object.assign({peer:myPeer,by:localId},o)); }catch(e){} };
+    let myPres={}, list=[], gone=false;
+    const send=o=>{ if(gone) return; try{ bc.postMessage(Object.assign({peer:myPeer,by:localId},o)); }catch(e){} };
     const rebuild=()=>{ list=Object.freeze([{peer:myPeer,by:localId,isMe:true,sameTab:true,kind:"viewer",guest:false,presence:myPres,updatedAt:Date.now()},...[...peerMap.values()].map(v=>v.obj)]); };
     const fire=(joined,left,updated)=>{ rebuild(); peerFns.forEach(fn=>{ try{ fn({peers:list,joined:joined||[],left:left||[],updated:updated||[]}); }catch(e){} }); };
     bc.onmessage=e=>{ const m=e.data; if(!m||m.peer===myPeer) return;
@@ -557,7 +569,8 @@ if(STANDALONE){
       on:(topic,fn)=>{ (topicFns[topic]=topicFns[topic]||new Set()).add(fn); return ()=>topicFns[topic].delete(fn); },
       presence:async patch=>{ myPres=Object.assign({},myPres,patch); for(const k in patch) if(patch[k]===null) delete myPres[k]; send({k:"pres",p:myPres}); rebuild(); },
       peers:()=>list, onPeers:fn=>{ peerFns.add(fn); setTimeout(()=>{ rebuild(); fn({peers:list,joined:list,left:[],updated:[]}); },0); return ()=>peerFns.delete(fn); },
-      connected:()=>true };
+      connected:()=>true, serverNow:()=>Date.now(),
+      leave:()=>{ send({k:"bye"}); gone=true; peerFns.clear(); } };
   }
   window.claude={ use: async name => name==="db"?db : name==="user"?user : name==="room"?room : null };
 }
@@ -1387,6 +1400,7 @@ $("actKiss").addEventListener("click",()=>requestTouch("kiss"));
 $("touchYes").addEventListener("click",()=>answerTouch(true));
 $("touchNoteStop").addEventListener("click",()=>{ setAllowAdminTouch(false); $("touchNote").hidden=true; toast("Từ giờ admin phải hỏi trước khi ôm, hôn bạn."); vp.focus({preventScroll:true}); });
 $("allowAdminTouch").checked=allowAdminTouch(); syncAdminTouchUI();
+$("kickBack").addEventListener("click",()=>location.reload());
 $("allowAdminTouch").addEventListener("change",e=>setAllowAdminTouch(e.target.checked));
 $("touchNo").addEventListener("click",()=>answerTouch(false));
 
@@ -1620,9 +1634,9 @@ function setAllowAdminTouch(on){
 /* Người có chữ "Linh" trong tên (không phân biệt hoa thường, dấu) và admin ôm, hôn nhau không cần hỏi */
 function isLinhName(n){ return String(n||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[đĐ]/g,"d").toLowerCase().includes("linh"); }
 /* Tự tải bản mới: GitHub Pages giữ trang cũ trong bộ nhớ đệm tới 10 phút */
-const BUILD="2026-11-09-linh2";
+const BUILD="2026-11-10-onesession";
 setInterval(async()=>{
-  if(me.touch || incomingReq || !$("gate").hidden) return;
+  if(kicked || me.touch || incomingReq || !$("gate").hidden) return;
   try{
     const t=await (await fetch(location.pathname+"?v="+Date.now(),{cache:"no-store"})).text();
     const m=t.match(/const BUILD="([^"]+)"/);
@@ -1667,8 +1681,8 @@ function startTouch(kind,partnerTid,mover){
 }
 async function roomEmit(topic){ if(!room) return; try{ await room.emit(topic,{t:Date.now()}); }catch(e){} }
 function setPresence(force){
-  if(!room) return;
-  const p={x:Math.round(me.x*10)/10,z:Math.round(me.z*10)/10,r:Math.round(me.ry*100)/100,c:me.ci,g:myGender,o:myOutfit,tid:tabId,b:me.bow>0?1:0,s:me.seat,k:me.kneeling?1:0,i:me.holdT>0?1:0,a:me.touch?me.touch.kind:"",w:me.touch?me.touch.with:"",n:myName()==="Bạn"?"":myName()};
+  if(!room || kicked) return;
+  const p={j:myJoin,x:Math.round(me.x*10)/10,z:Math.round(me.z*10)/10,r:Math.round(me.ry*100)/100,c:me.ci,g:myGender,o:myOutfit,tid:tabId,b:me.bow>0?1:0,s:me.seat,k:me.kneeling?1:0,i:me.holdT>0?1:0,a:me.touch?me.touch.kind:"",w:me.touch?me.touch.with:"",n:myName()==="Bạn"?"":myName()};
   const s=JSON.stringify(p); if(s===lastSent && !force) return; lastSent=s;
   room.presence(p).catch(()=>{});
 }
@@ -1692,6 +1706,7 @@ function setTabName(n){
   tabName=cleanName(n);
   try{ sessionStorage.setItem(TAB_KEY,tabName); }catch(e){}
   if($("myName").value!==tabName) $("myName").value=tabName;
+  if(room && room.serverNow) myJoin=room.serverNow();   // đổi sang tên đang có người dùng thì phiên này là phiên mới nhất
   refreshNames(); syncAdminTouchUI();
 }
 function refreshNames(){
@@ -1930,13 +1945,44 @@ $("chatForm").addEventListener("submit",async e=>{ e.preventDefault(); const inp
 $("chatInput").addEventListener("keydown",e=>{ if(e.key==="Escape"){ e.preventDefault(); vp.focus({preventScroll:true}); } });
 $("quick").addEventListener("click",e=>{ const b=e.target.closest("[data-say]"); if(b) sendChat(b.dataset.say); });
 
+/* Một tên chỉ một phiên: cùng tên vào ở máy hay tab khác thì phiên vào sau được giữ, phiên cũ tự rời chùa */
+let myJoin=0, kicked=false;
+const foldName=n=>String(n||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[đĐ]/g,"d").toLowerCase().replace(/\s+/g," ").trim();
+const joinKey=pr=>[Number(pr&&pr.j)||0,String(pr&&pr.tid||"")];
+const newerThan=(a,b)=>a[0]!==b[0]?a[0]>b[0]:a[1]>b[1];
+function checkSameName(list){
+  if(kicked || !myJoin) return;
+  const mine=foldName(myName()), meKey=[myJoin,tabId];
+  for(const p of list){ if(p.sameTab || p.kind!=="viewer") continue; const pr=p.presence||{};
+    if(pr.tid && pr.tid!==tabId && foldName(pr.n)===mine && newerThan(joinKey(pr),meKey)){ leaveForOtherDevice(); return; } }
+}
+/* Mỗi tên chỉ hiện một nhân vật: phiên vào sau cùng */
+function dedupePeers(list){
+  const best=new Map();
+  for(const p of list){ if(p.sameTab) continue; const k=foldName(p.presence&&p.presence.n); if(!k) continue;
+    const cur=best.get(k); if(!cur || newerThan(joinKey(p.presence),joinKey(cur.presence))) best.set(k,p); }
+  const mine=foldName(myName());
+  return list.filter(p=>{ if(p.sameTab) return true; const k=foldName(p.presence&&p.presence.n); if(!k) return true;
+    return best.get(k)===p && !(k===mine && !newerThan(joinKey(p.presence),[myJoin,tabId])); });
+}
+function leaveForOtherDevice(){
+  kicked=true;
+  try{ if(room && room.leave) room.leave(); }catch(e){}
+  room=null; $("liveDot").classList.remove("live"); $("chatState").textContent="Đã rời chùa";
+  for(const [id,o] of peers){ W.scene.remove(o.g); o.tag.remove(); if(o.bubble) o.bubble.remove(); if(o.fx) o.fx.remove(); } peers.clear();
+  $("kickText").textContent=`Tên “${myName()}” vừa vào chùa ở một máy hoặc tab khác, nên phiên ở đây đã kết thúc. Mỗi tên chỉ được ở trong chùa một nơi.`;
+  $("kickDlg").hidden=false;
+}
 async function initRoom(){
   if(!C || !C.use || !ready3d){ $("chatState").textContent="Chưa kết nối"; return; }
   try{ room=await C.use("room"); }catch(e){ room=null; }
   if(!room){ $("chatState").textContent="Chế độ xem này chưa trò chuyện được"; return; }
   $("liveDot").classList.add("live"); roomStart=performance.now();
+  myJoin = room.serverNow ? room.serverNow() : Date.now();
   room.onPeers(async ch=>{
-    renderPeers(ch.peers);
+    if(kicked) return;
+    checkSameName(ch.peers); if(kicked) return;
+    renderPeers(dedupePeers(ch.peers));
     if(performance.now()-roomStart<3000) return;
     const j=ch.joined.filter(p=>p.kind==="viewer"&&!p.sameTab), l=ch.left.filter(p=>p.kind==="viewer"&&!p.sameTab);
     if(!j.length && !l.length) return;
